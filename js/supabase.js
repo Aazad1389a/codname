@@ -64,7 +64,7 @@ export async function databaseDelete(table, eq) {
     const supabase = getSupabase();
     if (!supabase) throw new Error("Supabase is not configured.");
     let request = supabase.from(table).delete();
-    for (const [key, value] of Object.entries(eq)) request = request.eq(key, value);
+    for (const [key, value] of Object.entries(eq)) request = request.in(key, value);
     const { data, error } = await request.select();
     if (error) throw error;
     return data ?? [];
