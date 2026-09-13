@@ -2,12 +2,18 @@
 <html lang="fa" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="CODNAME - Original online deduction card game">
-    <meta name="theme-color" content="#090b10">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <meta name="theme-color" content="#070a10">
+    <meta name="description" content="CODNAME — بازی کارتی آنلاین استراتژیک">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="CODNAME">
+    <link rel="manifest" href="./manifest.webmanifest">
     <link rel="icon" type="image/svg+xml" href="./assets/favicon.svg">
-    <title>CODNAME — Online Card Game</title>
+    <link rel="apple-touch-icon" href="./assets/icon-192.svg">
     <link rel="stylesheet" href="./css/style.css">
+    <title>CODNAME</title>
 </head>
 <body>
     <div class="app-shell">
@@ -16,140 +22,139 @@
         <div id="toast" class="toast" data-toast></div>
 
         <section id="screen-loading" class="screen is-active" data-screen="loading">
-            <div class="loading-card glass-card">
-                <img class="brand-logo loading-logo" src="./assets/logo.svg" alt="CODNAME">
+            <div class="loading-card glass">
+                <img class="brand-logo brand-logo-lg" src="./assets/logo.svg" alt="CODNAME">
                 <p data-loading-text>در حال راه‌اندازی بازی...</p>
                 <div class="loader"></div>
             </div>
         </section>
 
-        <section id="screen-menu" class="screen" data-screen="menu">
-            <header class="topbar glass-bar">
-                <a class="brand" href="#" aria-label="CODNAME">
+        <section id="screen-menu" class="screen menu-screen" data-screen="menu">
+            <div class="menu-bg" aria-hidden="true"></div>
+
+            <header class="topbar">
+                <a class="brand" href="#" data-action="home" aria-label="CODNAME">
                     <img src="./assets/logo.svg" alt="CODNAME">
                 </a>
+                <nav class="desktop-nav" aria-label="navigation">
+                    <button class="nav-item is-active" data-action="home">خانه</button>
+                    <button class="nav-item" data-action="show-modes">حالت‌ها</button>
+                    <button class="nav-item" data-action="show-profile">پروفایل</button>
+                </nav>
                 <div class="topbar-actions">
                     <div class="profile-chip" data-profile>مهمان</div>
-                    <button class="ghost-btn auth-trigger" data-action="open-auth">ورود / ثبت‌نام</button>
-                    <button class="ghost-btn auth-only" data-action="logout" hidden>خروج از حساب</button>
+                    <button class="icon-btn auth-trigger" data-action="open-auth" aria-label="ورود">⌾</button>
+                    <button class="ghost-btn auth-only" data-action="logout" hidden>خروج</button>
                 </div>
             </header>
 
-            <main class="menu-page">
-                <section class="featured-hero panel hero-visual">
-                    <div class="hero-copy">
-                        <span class="badge accent">ORIGINAL EDITION</span>
-                        <h1>فقط یک کلمه.<br><span>هزار ارتباط.</span></h1>
-                        <p>یک بازی کارتی آنلاین برای تیم‌هایی که باید از میان انبوهی از کلمات، ارتباط درست را پیدا کنند. ساده برای شروع، عمیق برای استاد شدن.</p>
-                        <div class="hero-actions">
-                            <button class="primary-btn" data-action="create-room">ساخت اتاق</button>
-                            <button class="secondary-btn" data-action="open-auth">ورود به حساب</button>
-                        </div>
-                        <div class="live-stats">
-                            <span><strong>16–36</strong> کارت</span>
-                            <span><strong>2–8</strong> بازیکن</span>
-                            <span><strong>4</strong> مود</span>
-                            <span class="live-dot">REALTIME</span>
-                        </div>
+            <main class="menu-stage">
+                <section class="hero-copy glass-soft">
+                    <span class="badge accent-badge">ORIGINAL EDITION • ONLINE</span>
+                    <h1>فکر کن.<br><span>کشف کن.</span><br>برنده شو.</h1>
+                    <p>یک نبرد کارتی تیمی؛ سرنخ دقیق بده، ارتباط‌ها را پیدا کن و قبل از تیم مقابل همه‌ی اهداف را کشف کن.</p>
+                    <div class="hero-actions">
+                        <button class="primary-btn xl" data-action="create-room">ساخت اتاق <span>←</span></button>
+                        <button class="secondary-btn xl" data-action="join-room-quick">ورود به اتاق <span>⌗</span></button>
+                    </div>
+                    <div class="quick-stats">
+                        <div><strong>16–36</strong><span>کارت در هر برد</span></div>
+                        <div><strong>2–8</strong><span>بازیکن</span></div>
+                        <div><strong>4</strong><span>مود اصلی</span></div>
                     </div>
                 </section>
 
-                <section class="menu-grid">
-                    <article class="panel action-card create-card">
-                        <div class="card-art art-red"><span>ROOM</span></div>
-                        <div class="card-content">
-                            <span class="eyebrow">PLAY WITH FRIENDS</span>
-                            <h2>ساخت اتاق</h2>
-                            <p>مود، تعداد بازیکن و اندازه‌ی برد را انتخاب کن و یک مسابقه‌ی اختصاصی بساز.</p>
-                            <button class="primary-btn" data-action="create-room">ساخت اتاق جدید</button>
-                        </div>
-                    </article>
+                <section class="visual-hub" aria-label="CODNAME arena preview">
+                    <div class="mission-orbit orbit-one"></div>
+                    <div class="mission-orbit orbit-two"></div>
+                    <div class="agent-silhouette agent-left"></div>
+                    <div class="agent-silhouette agent-right"></div>
+                    <div class="cards-stack">
+                        <div class="floating-card card-one">SPY</div>
+                        <div class="floating-card card-two">CODE</div>
+                        <div class="floating-card card-three">NIGHT</div>
+                    </div>
+                    <div class="center-logo-medallion"><img src="./assets/favicon.svg" alt=""></div>
+                </section>
 
-                    <article class="panel action-card join-card">
-                        <div class="card-art art-blue"><span>JOIN</span></div>
-                        <div class="card-content">
-                            <span class="eyebrow">ENTER A MATCH</span>
-                            <h2>ورود به اتاق</h2>
-                            <label>کد ۶ رقمی اتاق</label>
-                            <div class="join-row">
-                                <input data-join-code maxlength="6" placeholder="ABC123" autocomplete="off" inputmode="text">
-                                <button class="secondary-btn" data-action="join-room">ورود</button>
+                <aside class="side-column">
+                    <section class="account-panel glass" data-account-panel>
+                        <div class="panel-kicker">YOUR OPERATIVE PROFILE</div>
+                        <div class="account-head">
+                            <div class="avatar-ring"><img src="./assets/avatar-agent.svg" alt=""></div>
+                            <div>
+                                <strong data-account-name>مهمان</strong>
+                                <span data-account-status>وارد نشده</span>
                             </div>
                         </div>
-                    </article>
-
-                    <article class="panel modes-card">
-                        <div class="section-heading">
-                            <div><span class="eyebrow">DEEPER GAMEPLAY</span><h2>حالت‌های بازی</h2></div>
-                            <span class="mode-count">4 MODES</span>
+                        <div class="account-grid">
+                            <div><span>سطح</span><strong data-account-level>—</strong></div>
+                            <div><span>XP</span><strong data-account-xp>—</strong></div>
+                            <div><span>بردها</span><strong data-account-wins>—</strong></div>
                         </div>
-                        <div class="mode-strip">
-                            <div><strong>CLASSIC</strong><span>25 کارت</span></div>
-                            <div><strong>EXPANDED</strong><span>35 کارت</span></div>
-                            <div><strong>CHAOS</strong><span>کارت‌های ویژه</span></div>
-                            <div><strong>DUEL</strong><span>16 کارت</span></div>
-                        </div>
-                    </article>
+                        <button class="secondary-btn" data-action="open-auth">ورود / ساخت حساب</button>
+                    </section>
 
-                    <article class="panel settings-panel">
-                        <div class="section-heading"><div><span class="eyebrow">MATCH BUILDER</span><h2>تنظیمات سریع</h2></div></div>
-                        <label>حالت بازی</label>
-                        <select data-mode>
-                            <option value="classic">Classic — 25 کارت</option>
-                            <option value="expanded">Expanded — 35 کارت</option>
-                            <option value="chaos">Chaos — 36 کارت</option>
-                            <option value="duel">Duel — 16 کارت</option>
-                        </select>
-                        <label>تعداد بازیکن</label>
-                        <select data-max-players>
-                            <option value="4">4</option>
-                            <option value="6">6</option>
-                            <option value="8" selected>8</option>
-                        </select>
-                        <label>اندازه‌ی برد</label>
-                        <select data-board-size>
-                            <option value="16">16</option>
-                            <option value="25" selected>25</option>
-                            <option value="35">35</option>
-                            <option value="36">36</option>
-                        </select>
-                    </article>
-                </section>
+                    <section class="modes-panel glass">
+                        <div class="panel-head"><div><div class="panel-kicker">PLAY YOUR WAY</div><h2>حالت‌های بازی</h2></div><span class="live-dot">LIVE</span></div>
+                        <button class="mode-mini active" data-mode-pick="classic"><span class="mode-icon red-icon">◎</span><span><strong>کلاسیک</strong><small>25 کارت • قوانین اصلی</small></span><b>›</b></button>
+                        <button class="mode-mini" data-mode-pick="expanded"><span class="mode-icon blue-icon">◆</span><span><strong>گسترده</strong><small>35 کارت • نبرد طولانی‌تر</small></span><b>›</b></button>
+                        <button class="mode-mini" data-mode-pick="chaos"><span class="mode-icon gold-icon">✦</span><span><strong>هرج‌ومرج</strong><small>36 کارت • قوانین ویژه</small></span><b>›</b></button>
+                    </section>
+                </aside>
             </main>
+
+            <footer class="platform-bar">
+                <div class="platforms"><span>WINDOWS</span><span>ANDROID</span><span>iOS</span><span>BROWSER</span></div>
+                <span class="platform-note">نصب مستقیم روی دستگاه • ذخیره‌سازی آنلاین • Realtime</span>
+            </footer>
         </section>
 
         <section id="screen-lobby" class="screen" data-screen="lobby">
-            <header class="topbar glass-bar">
-                <div><span class="eyebrow">ROOM</span><h1 data-room-code>------</h1></div>
+            <header class="topbar">
+                <a class="brand" href="#" data-action="home"><img src="./assets/logo.svg" alt="CODNAME"></a>
+                <div class="room-title"><span>ROOM</span><strong data-room-code>------</strong></div>
                 <button class="ghost-btn" data-action="leave-room">خروج</button>
             </header>
             <main class="lobby-layout">
-                <article class="panel"><h2>بازیکنان</h2><div class="players" data-players></div></article>
-                <article class="panel lobby-info hero-visual-small"><span class="badge accent">6-CHARACTER ROOM CODE</span><div class="room-code-big" data-room-code>------</div><p>کد را با دوستانت به اشتراک بگذار. حداقل دو بازیکن برای شروع لازم است.</p><button class="primary-btn" data-action="start-game">شروع بازی</button></article>
+                <article class="panel lobby-visual">
+                    <div class="room-glow"></div>
+                    <span class="badge">PRIVATE MISSION</span>
+                    <h2>اتاق آماده‌ی تیم شماست.</h2>
+                    <div class="room-code-big" data-room-code>------</div>
+                    <p>کد اتاق را برای هم‌تیمی‌ها بفرست. با ورود بازیکن‌ها، فهرست لحظه‌ای به‌روزرسانی می‌شود.</p>
+                    <button class="primary-btn" data-action="start-game">شروع بازی</button>
+                </article>
+                <article class="panel players-panel"><div class="panel-head"><h2>بازیکنان</h2><span class="live-dot">LIVE</span></div><div class="players" data-players></div></article>
             </main>
         </section>
 
         <section id="screen-game" class="screen" data-screen="game">
-            <header class="gamebar glass-bar">
+            <header class="gamebar glass">
                 <div class="score team-red"><span>قرمز</span><strong data-score-red>0</strong></div>
                 <div class="turn-center"><span data-turn>منتظر شروع...</span><small data-clue>بدون سرنخ</small></div>
                 <div class="score team-blue"><span>آبی</span><strong data-score-blue>0</strong></div>
             </header>
-            <main class="game-layout"><section class="board-wrap"><div class="board" data-board></div></section><aside class="side-panel panel"><h3>بازیکنان</h3><div class="players" data-players></div><button class="secondary-btn" data-action="end-turn">پایان نوبت</button><button class="ghost-btn" data-action="leave-room">خروج از اتاق</button></aside></main>
+            <main class="game-layout">
+                <section class="board-wrap"><div class="board" data-board></div></section>
+                <aside class="side-panel panel"><div class="panel-head"><h3>تیم‌ها</h3><span class="live-dot">LIVE</span></div><div class="players" data-players></div><button class="secondary-btn" data-action="end-turn">پایان نوبت</button><button class="ghost-btn" data-action="leave-room">خروج از اتاق</button></aside>
+            </main>
         </section>
 
-        <section id="screen-result" class="screen" data-screen="result"><div class="result-card panel"><span class="eyebrow">MATCH COMPLETE</span><h1 data-winner>برنده مشخص شد</h1><div class="final-score" data-final-score>0 - 0</div><button class="primary-btn" data-action="back-menu">بازگشت به منو</button></div></section>
+        <section id="screen-result" class="screen" data-screen="result">
+            <div class="result-card panel"><span class="eyebrow">MATCH COMPLETE</span><h1 data-winner>برنده مشخص شد</h1><div class="final-score" data-final-score>0 - 0</div><button class="primary-btn" data-action="back-menu">بازگشت به منو</button></div>
+        </section>
     </div>
 
     <dialog id="auth-modal" class="auth-modal" data-auth-modal>
-        <div class="auth-card">
+        <div class="auth-card glass">
             <button class="auth-close" type="button" data-action="close-auth" aria-label="بستن">×</button>
-            <img class="auth-logo" src="./assets/logo.svg" alt="CODNAME">
+            <img class="brand-logo auth-logo" src="./assets/logo.svg" alt="CODNAME">
             <h2>ورود به CODNAME</h2>
-            <p class="auth-subtitle">برای ساخت اتاق و بازی آنلاین یک حساب بساز یا وارد حساب قبلی شو.</p>
+            <p class="auth-subtitle">برای بازی آنلاین حساب بساز یا سریع با Google وارد شو.</p>
+            <button class="google-btn" type="button" data-action="google-login"><span class="google-mark">G</span> ورود با Google</button>
+            <div class="auth-divider"><span>یا</span></div>
             <div class="auth-tabs"><button type="button" class="auth-tab is-active" data-auth-tab="login">ورود</button><button type="button" class="auth-tab" data-auth-tab="signup">ساخت حساب</button></div>
-            <button class="google-btn" type="button" data-action="google-auth"><span class="google-g">G</span> ادامه با Google</button>
-            <div class="auth-divider"><span>یا با ایمیل</span></div>
             <form class="auth-form" data-auth-form>
                 <div class="auth-signup-only" hidden><label for="auth-username">نام کاربری</label><input id="auth-username" name="username" maxlength="24" autocomplete="username" placeholder="مثلاً Arise"></div>
                 <label for="auth-email">ایمیل</label><input id="auth-email" name="email" type="email" autocomplete="email" placeholder="you@example.com" required>
@@ -161,5 +166,10 @@
     </dialog>
 
     <script type="module" src="./js/main.js"></script>
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => navigator.serviceWorker.register('./sw.js').catch(() => {}));
+        }
+    </script>
 </body>
 </html>
