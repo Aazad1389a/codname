@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="CODNAME - Original online deduction card game">
+    <title>CODNAME</title>
+    <link rel="stylesheet" href="./css/style.css">
+</head>
+<body>
+    <div class="app-shell">
+        <div id="toast" class="toast" data-toast></div>
+
+        <section id="screen-loading" class="screen is-active" data-screen="loading">
+            <div class="loading-card">
+                <div class="logo-mark">CN</div>
+                <h1>CODNAME</h1>
+                <p data-loading-text>در حال راه‌اندازی بازی...</p>
+                <div class="loader"></div>
+            </div>
+        </section>
+
+        <section id="screen-menu" class="screen" data-screen="menu">
+            <header class="topbar">
+                <div>
+                    <span class="eyebrow">ONLINE CARD GAME</span>
+                    <h1>CODNAME</h1>
+                </div>
+                <div class="profile-chip" data-profile>Guest</div>
+            </header>
+
+            <main class="menu-grid">
+                <article class="panel hero-panel">
+                    <span class="badge">ORIGINAL EDITION</span>
+                    <h2>سرنخ بده، ارتباط پیدا کن، ریسک کن.</h2>
+                    <p>نسخه‌ی آنلاین و توسعه‌یافته‌ی بازی کارت‌محور CODNAME با بردهای بزرگ‌تر، کارت‌های ویژه و چند حالت بازی.</p>
+                    <button class="primary-btn" data-action="create-room">ساخت اتاق</button>
+                </article>
+
+                <article class="panel">
+                    <h3>ورود به اتاق</h3>
+                    <label>کد ۶ رقمی اتاق</label>
+                    <input data-join-code maxlength="6" placeholder="ABC123" autocomplete="off">
+                    <button class="secondary-btn" data-action="join-room">ورود</button>
+                </article>
+
+                <article class="panel settings-panel">
+                    <h3>تنظیمات Match</h3>
+                    <label>حالت بازی</label>
+                    <select data-mode>
+                        <option value="classic">Classic — 25 کارت</option>
+                        <option value="expanded">Expanded — 35 کارت</option>
+                        <option value="chaos">Chaos — 36 کارت</option>
+                        <option value="duel">Duel — 16 کارت</option>
+                    </select>
+                    <label>تعداد بازیکن</label>
+                    <select data-max-players>
+                        <option value="4">4</option>
+                        <option value="6">6</option>
+                        <option value="8" selected>8</option>
+                    </select>
+                    <label>اندازه‌ی برد</label>
+                    <select data-board-size>
+                        <option value="16">16</option>
+                        <option value="25" selected>25</option>
+                        <option value="35">35</option>
+                        <option value="36">36</option>
+                    </select>
+                </article>
+            </main>
+        </section>
+
+        <section id="screen-lobby" class="screen" data-screen="lobby">
+            <header class="topbar">
+                <div>
+                    <span class="eyebrow">ROOM</span>
+                    <h1 data-room-code>------</h1>
+                </div>
+                <button class="ghost-btn" data-action="leave-room">خروج</button>
+            </header>
+            <main class="lobby-layout">
+                <article class="panel">
+                    <h2>بازیکنان</h2>
+                    <div class="players" data-players></div>
+                </article>
+                <article class="panel lobby-info">
+                    <span class="badge">6-CHARACTER ROOM CODE</span>
+                    <div class="room-code-big" data-room-code>------</div>
+                    <p>کد را با دوستانت به اشتراک بگذار. حداقل دو بازیکن برای شروع لازم است.</p>
+                    <button class="primary-btn" data-action="start-game">شروع بازی</button>
+                </article>
+            </main>
+        </section>
+
+        <section id="screen-game" class="screen" data-screen="game">
+            <header class="gamebar">
+                <div class="score team-red"><span>قرمز</span><strong data-score-red>0</strong></div>
+                <div class="turn-center"><span data-turn>منتظر شروع...</span><small data-clue>بدون سرنخ</small></div>
+                <div class="score team-blue"><span>آبی</span><strong data-score-blue>0</strong></div>
+            </header>
+            <main class="game-layout">
+                <section class="board-wrap">
+                    <div class="board" data-board></div>
+                </section>
+                <aside class="side-panel panel">
+                    <h3>بازیکنان</h3>
+                    <div class="players" data-players></div>
+                    <button class="secondary-btn" data-action="end-turn">پایان نوبت</button>
+                    <button class="ghost-btn" data-action="leave-room">خروج از اتاق</button>
+                </aside>
+            </main>
+        </section>
+
+        <section id="screen-result" class="screen" data-screen="result">
+            <div class="result-card panel">
+                <span class="eyebrow">MATCH COMPLETE</span>
+                <h1 data-winner>برنده مشخص شد</h1>
+                <div class="final-score" data-final-score>0 - 0</div>
+                <button class="primary-btn" data-action="back-menu">بازگشت به منو</button>
+            </div>
+        </section>
+    </div>
+
+    <script type="module" src="./js/main.js"></script>
+</body>
+</html>
