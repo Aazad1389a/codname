@@ -56,12 +56,8 @@ function bindButtons() {
             return;
         }
 
-        if (action === "create-room") {
-            document.dispatchEvent(new CustomEvent("codname:create-room", { detail: readRoomSettings() }));
-        }
-        if (action === "join-room") {
-            document.dispatchEvent(new CustomEvent("codname:join-room", { detail: { code: $("[data-join-code]")?.value || "" } }));
-        }
+        if (action === "create-room") document.dispatchEvent(new CustomEvent("codname:create-room", { detail: readRoomSettings() }));
+        if (action === "join-room") document.dispatchEvent(new CustomEvent("codname:join-room", { detail: { code: $("[data-join-code]")?.value || "" } }));
         if (action === "start-game") document.dispatchEvent(new CustomEvent("codname:start-game"));
         if (action === "end-turn") document.dispatchEvent(new CustomEvent("codname:end-turn"));
         if (action === "leave-room") document.dispatchEvent(new CustomEvent("codname:leave-room"));
@@ -130,7 +126,7 @@ function switchAuthMode(mode) {
     state.authMode = mode === "signup" ? "signup" : "login";
     $$('[data-auth-tab]').forEach((tab) => tab.classList.toggle("is-active", tab.dataset.authTab === state.authMode));
     if (state.refs.signupOnly) state.refs.signupOnly.hidden = state.authMode !== "signup";
-    if (state.refs.authSubmit) state.refs.authSubmit.textContent = state.authMode === "signup" ? "ساخت حساب" : "ورود";
+    setAuthButtonText();
     const password = $("#auth-password");
     if (password) password.autocomplete = state.authMode === "signup" ? "new-password" : "current-password";
     setAuthStatus("", false);
@@ -138,7 +134,12 @@ function switchAuthMode(mode) {
 
 function setAuthBusy(busy) {
     $$('[data-auth-form] input, [data-auth-form] button[type="submit"]').forEach((el) => { el.disabled = busy; });
-    if (state.refs.authSubmit && busy) state.refs.authSubmit.textContent = "لطفاً صبر کنید...";
+    if (busy && state.refs.authSubmit) state.refs.authSubmit.textContent = "لطفاً صبر کنید...";
+    if (!busy) setAuthButtonText();
+}
+
+function setAuthButtonText() {
+    if (state.refs.authSubmit) state.refs.authSubmit.textContent = state.authMode === "signup" ? "ساخت حساب" : "ورود";
 }
 
 function setAuthStatus(message, isError) {
