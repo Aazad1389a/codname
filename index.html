@@ -26,7 +26,11 @@
                     <span class="eyebrow">ONLINE CARD GAME</span>
                     <h1>CODNAME</h1>
                 </div>
-                <div class="profile-chip" data-profile>Guest</div>
+                <div class="topbar-actions">
+                    <div class="profile-chip" data-profile>مهمان</div>
+                    <button class="ghost-btn auth-trigger" data-action="open-auth">ورود / ثبت‌نام</button>
+                    <button class="ghost-btn auth-only" data-action="logout" hidden>خروج از حساب</button>
+                </div>
             </header>
 
             <main class="menu-grid">
@@ -120,6 +124,37 @@
             </div>
         </section>
     </div>
+
+    <dialog id="auth-modal" class="auth-modal" data-auth-modal>
+        <div class="auth-card">
+            <button class="auth-close" type="button" data-action="close-auth" aria-label="بستن">×</button>
+            <div class="logo-mark">CN</div>
+            <h2>ورود به CODNAME</h2>
+            <p class="auth-subtitle">برای ساخت اتاق و بازی آنلاین یک حساب بساز یا وارد حساب قبلی شو.</p>
+
+            <div class="auth-tabs">
+                <button type="button" class="auth-tab is-active" data-auth-tab="login">ورود</button>
+                <button type="button" class="auth-tab" data-auth-tab="signup">ساخت حساب</button>
+            </div>
+
+            <form class="auth-form" data-auth-form>
+                <div class="auth-signup-only" hidden>
+                    <label for="auth-username">نام کاربری</label>
+                    <input id="auth-username" name="username" maxlength="24" autocomplete="username" placeholder="مثلاً Arise">
+                </div>
+
+                <label for="auth-email">ایمیل</label>
+                <input id="auth-email" name="email" type="email" autocomplete="email" placeholder="you@example.com" required>
+
+                <label for="auth-password">رمز عبور</label>
+                <input id="auth-password" name="password" type="password" minlength="6" autocomplete="current-password" placeholder="حداقل ۶ کاراکتر" required>
+
+                <button class="primary-btn" type="submit" data-auth-submit>ورود</button>
+            </form>
+
+            <p class="auth-status" data-auth-status></p>
+        </div>
+    </dialog>
 
     <script type="module" src="./js/main.js"></script>
 </body>
