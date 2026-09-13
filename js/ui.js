@@ -1,14 +1,6 @@
-import { signIn, signUp, signOut } from "./auth.js";
+import { signIn, signUp, signOut, signInWithGoogle } from "./auth.js";
 
-const state = {
-    refs: {},
-    user: null,
-    profile: null,
-    roomCode: null,
-    authMode: "login",
-    toastTimer: null
-};
-
+const state = { refs: {}, user: null, profile: null, roomCode: null, authMode: "login", toastTimer: null };
 const $ = (selector, root = document) => root.querySelector(selector);
 const $$ = (selector, root = document) => [...root.querySelectorAll(selector)];
 
@@ -41,6 +33,7 @@ function cacheRefs() {
     state.refs.authForm = $("[data-auth-form]");
     state.refs.authStatus = $("[data-auth-status]");
     state.refs.authSubmit = $("[data-auth-submit]");
+    state.refs.google = $("[data-action='google-auth']");
     state.refs.signupOnly = $(".auth-signup-only");
 }
 
@@ -65,6 +58,7 @@ function bindButtons() {
         if (action === "open-auth") openAuth("login");
         if (action === "close-auth") closeAuth();
         if (action === "logout") handleLogout();
+        if (action === "google-auth") handleGoogleAuth();
     });
 }
 
@@ -101,9 +95,24 @@ function bindAuth() {
         }
     });
 
-    $$('[data-auth-tab]').forEach((tab) => {
-        tab.addEventListener("click", () => switchAuthMode(tab.dataset.authTab));
-    });
+    $$('[data-auth-tab]').forEach((tab) => tab.addEventListener("click", () => switchAuthMode(tab.dataset.authTab)));
+}
+
+async function handleGoogleAuth() {
+    try {
+        if (state.refs.google) {
+            state.refs.google.disabled = true;
+            state.refs.google.textContent = "در حال انتقال به Google...";
+        }
+        await signInWithGoogle();
+    } catch (error) {
+        console.error("Google authentication error:", error);
+        setAuthStatus(authErrorMessage(error), true);
+        if (state.refs.google) {
+            state.refs.google.disabled = false;
+            state.refs.google.innerHTML = '<span class="google-g">G</span> ادامه با Google';
+        }
+    }
 }
 
 function openAuth(mode = "login") {
@@ -126,7 +135,7 @@ function switchAuthMode(mode) {
     state.authMode = mode === "signup" ? "signup" : "login";
     $$('[data-auth-tab]').forEach((tab) => tab.classList.toggle("is-active", tab.dataset.authTab === state.authMode));
     if (state.refs.signupOnly) state.refs.signupOnly.hidden = state.authMode !== "signup";
-    setAuthButtonText();
+    if (state.refs.authSubmit) state.refs.authSubmit.textContent = state.authMode === "signup" ? "ساخت حساب" : "ورود";
     const password = $("#auth-password");
     if (password) password.autocomplete = state.authMode === "signup" ? "new-password" : "current-password";
     setAuthStatus("", false);
@@ -134,12 +143,9 @@ function switchAuthMode(mode) {
 
 function setAuthBusy(busy) {
     $$('[data-auth-form] input, [data-auth-form] button[type="submit"]').forEach((el) => { el.disabled = busy; });
-    if (busy && state.refs.authSubmit) state.refs.authSubmit.textContent = "لطفاً صبر کنید...";
-    if (!busy) setAuthButtonText();
-}
-
-function setAuthButtonText() {
-    if (state.refs.authSubmit) state.refs.authSubmit.textContent = state.authMode === "signup" ? "ساخت حساب" : "ورود";
+    if (state.refs.google) state.refs.google.disabled = busy;
+    if (state.refs.authSubmit && busy) state.refs.authSubmit.textContent = "لطفاً صبر کنید...";
+    if (!busy && state.refs.authSubmit) state.refs.authSubmit.textContent = state.authMode === "signup" ? "ساخت حساب" : "ورود";
 }
 
 function setAuthStatus(message, isError) {
@@ -154,6 +160,7 @@ function authErrorMessage(error) {
     if (/User already registered/i.test(message)) return "این ایمیل قبلاً ثبت شده است. وارد شوید.";
     if (/Email not confirmed/i.test(message)) return "ایمیل هنوز تأیید نشده است.";
     if (/Password should be at least/i.test(message)) return "رمز عبور کوتاه است.";
+    if (/provider.*not enabled|Unsupported provider/i.test(message)) return "ورود با Google هنوز در تنظیمات Supabase فعال نشده است.";
     return message || "خطایی در ورود یا ثبت‌نام رخ داد.";
 }
 
@@ -168,11 +175,7 @@ async function handleLogout() {
 }
 
 function readRoomSettings() {
-    return {
-        mode: $("[data-mode]")?.value || "classic",
-        maxPlayers: Number($("[data-max-players]")?.value || 8),
-        boardSize: Number($("[data-board-size]")?.value || 25)
-    };
+    return { mode: $("[data-mode]")?.value || "classic", maxPlayers: Number($("[data-max-players]")?.value || 8), boardSize: Number($("[data-board-size]")?.value || 25) };
 }
 
 export function showScreen(name) {
@@ -194,9 +197,7 @@ export function showError(message) {
         state.refs.toast.classList.add("is-visible");
         window.clearTimeout(state.toastTimer);
         state.toastTimer = window.setTimeout(() => state.refs.toast?.classList.remove("is-visible"), 3500);
-    } else {
-        alert(message);
-    }
+    } else alert(message);
 }
 
 export function showLobby(data = {}) {
@@ -208,11 +209,7 @@ export function showLobby(data = {}) {
     if (start) start.disabled = !isHost || (data.players || []).length < 2;
 }
 
-export function showGame({ game } = {}) {
-    renderBoard(game?.board || [], game?.revealed || [], game?.currentTurn);
-    renderPlayers(game?.players || []);
-}
-
+export function showGame({ game } = {}) { renderBoard(game?.board || [], game?.revealed || [], game?.currentTurn); renderPlayers(game?.players || []); }
 export function updatePlayerList(players = []) { renderPlayers(players); }
 
 function renderPlayers(players) {
@@ -274,6 +271,4 @@ function renderAuthState() {
     if (logout) logout.hidden = !state.user;
 }
 
-function escapeHtml(value) {
-    return String(value).replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll('"', "&quot;").replaceAll("'", "&#039;");
-}
+function escapeHtml(value) { return String(value).replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll('"', "&quot;").replaceAll("'", "&#039;"); }
