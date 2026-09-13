@@ -8,14 +8,8 @@ let client = null;
 export function getSupabase() {
     if (!client && SUPABASE_PUBLISHABLE_KEY) {
         client = createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
-            auth: {
-                persistSession: true,
-                autoRefreshToken: true,
-                detectSessionInUrl: true
-            },
-            realtime: {
-                params: { eventsPerSecond: 10 }
-            }
+            auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true },
+            realtime: { params: { eventsPerSecond: 10 } }
         });
     }
     return client;
@@ -64,12 +58,10 @@ export async function databaseDelete(table, eq) {
     const supabase = getSupabase();
     if (!supabase) throw new Error("Supabase is not configured.");
     let request = supabase.from(table).delete();
-    for (const [key, value] of Object.entries(eq)) request = request.in(key, value);
+    for (const [key, value] of Object.entries(eq)) request = request.eq(key, value);
     const { data, error } = await request.select();
     if (error) throw error;
     return data ?? [];
 }
 
-export function isSupabaseConfigured() {
-    return Boolean(getSupabase());
-}
+export function isSupabaseConfigured() { return Boolean(getSupabase()); }
