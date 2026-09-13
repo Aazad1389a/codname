@@ -1,0 +1,28 @@
+const CACHE = 'codname-shell-v2';
+const ASSETS = [
+  './', './index.html', './css/style.css',
+  './js/main.js', './js/ui.js', './js/auth.js', './js/game.js', './js/cards.js', './js/multiplayer.js', './js/player.js', './js/supabase.js',
+  './manifest.webmanifest', './assets/logo.svg', './assets/favicon.svg', './assets/icon-192.svg', './assets/icon-512.svg', './assets/hero.svg', './assets/avatar-agent.svg'
+];
+
+self.addEventListener('install', (event) => {
+  event.waitUntil(caches.open(CACHE).then(cache => cache.addAll(ASSETS)).then(() => self.skipWaiting()));
+});
+
+self.addEventListener('activate', (event) => {
+  event.waitUntil(caches.keys().then(keys => Promise.all(keys.filter(k => k !== CACHE).map(k => caches.delete(k)))).then(() => self.clients.claim()));
+});
+
+self.addEventListener('fetch', (event) => {
+  const request = event.request;
+  if (request.method !== 'GET') return;
+  event.respondWith(
+    caches.match(request).then(cached => cached || fetch(request).then(response => {
+      const copy = response.clone();
+      if (response.ok && new URL(request.url).origin === self.location.origin) {
+        caches.open(CACHE).then(cache => cache.put(request, copy));
+      }
+      return response;
+    }).catch(() => caches.match('./index.html')))
+  );
+});
