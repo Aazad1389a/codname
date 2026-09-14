@@ -3,7 +3,7 @@ import "./ui-fixes.js";
 import "./install-entry.js";
 import "./github-auth-ui.js";
 import "./menu-visuals.js";
-import "./workspace.js";
+import "./workspace-v2.js";
 import { createGame, joinGame, startGame, selectCard, endTurn, getGameState } from "./game.js";
 import { connectRealtime, subscribeToRoom, unsubscribeFromRoom } from "./multiplayer.js";
 import { initUI, showScreen, showLobby, showGame, showLoading, showError, updateGameUI, updatePlayerList } from "./ui.js";
