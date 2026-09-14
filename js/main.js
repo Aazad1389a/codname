@@ -8,6 +8,7 @@ import "./workspace-v2.js";
 import "./clue-system.js";
 import "./mobile-clean.js";
 import "./team-roles.js";
+import "./lobby-format-guard.js";
 import { createGame, joinGame, startGame, submitClue, selectCard, endTurn, getGameState } from "./game.js";
 import { connectRealtime, subscribeToRoom, unsubscribeFromRoom } from "./multiplayer.js";
 import { initUI, showScreen, showLobby, showGame, showLoading, showError, updateGameUI, updatePlayerList } from "./ui.js";
