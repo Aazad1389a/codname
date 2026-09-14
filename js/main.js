@@ -1,4 +1,5 @@
 import "./pre.js";
+import "./ios-fix.js";
 import "./ui-fixes.js";
 import "./install-entry.js";
 import "./github-auth-ui.js";
@@ -11,7 +12,7 @@ import { initUI, showScreen, showLobby, showGame, showLoading, showError, update
 import { getCurrentUser, createPlayerProfile, getPlayerProfile } from "./player.js";
 import { getSupabase, databaseUpdate } from "./supabase.js";
 
-const APP={version:"1.7.0",user:null,profile:null,roomId:null,roomCode:null,gameState:null,realtimeChannel:null,initialized:false};
+const APP={version:"1.7.1",user:null,profile:null,roomId:null,roomCode:null,gameState:null,realtimeChannel:null,initialized:false};
 const safe=(fn)=>{try{return fn()}catch(error){console.error(error);return null}};
 
 async function boot(){
