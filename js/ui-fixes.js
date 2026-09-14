@@ -1,3 +1,5 @@
+import "./pre.js";
+
 // CODNAME UI hotfix + install experience
 
 const CSS = `
