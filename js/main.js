@@ -3,11 +3,12 @@ import "./ui-fixes.js";
 import "./install-entry.js";
 import "./github-auth-ui.js";
 import "./menu-visuals.js";
+import "./workspace.js";
 import { createGame, joinGame, startGame, selectCard, endTurn, getGameState } from "./game.js";
 import { connectRealtime, subscribeToRoom, unsubscribeFromRoom } from "./multiplayer.js";
 import { initUI, showScreen, showLobby, showGame, showLoading, showError, updateGameUI, updatePlayerList } from "./ui.js";
 import { getCurrentUser, createPlayerProfile, getPlayerProfile } from "./player.js";
-import { getSupabase } from "./supabase.js";
+import { getSupabase, databaseUpdate } from "./supabase.js";
 
 const APP={version:"1.5.0",user:null,profile:null,roomId:null,roomCode:null,gameState:null,realtimeChannel:null,initialized:false};
 const safe=(fn)=>{try{return fn()}catch(error){console.error(error);return null}};
@@ -29,6 +30,7 @@ document.addEventListener("DOMContentLoaded",()=>boot().catch(error=>{console.er
 function bindAppEvents(){
   document.addEventListener("codname:create-room",async(event)=>{if(!APP.user)return showError("ابتدا وارد حساب شوید.");try{showLoading("در حال ساخت اتاق...");const result=await createGame({userId:APP.user.id,...(event.detail||{})});APP.roomId=result.roomId;APP.roomCode=result.roomCode;await enterLobby();}catch(error){console.error(error);showError(error?.message||"ساخت اتاق انجام نشد.");showScreen("menu");}});
   document.addEventListener("codname:join-room",async(event)=>{if(!APP.user)return showError("ابتدا وارد حساب شوید.");const code=String(event.detail?.code||"").trim().toUpperCase();if(!/^[A-Z0-9]{6}$/.test(code))return showError("کد اتاق باید ۶ کاراکتر باشد.");try{showLoading("در حال ورود به اتاق...");const result=await joinGame({userId:APP.user.id,code});APP.roomId=result.roomId;APP.roomCode=result.roomCode;await enterLobby();}catch(error){console.error(error);showError(error?.message||"ورود به اتاق انجام نشد.");showScreen("menu");}});
+  document.addEventListener("codname:change-room-mode",async(event)=>{if(!APP.user||!APP.roomId)return;const mode=String(event.detail?.mode||"");const allowed={classic:true,expanded:true,chaos:true,duel:true};if(!allowed[mode])return showError("مود انتخاب‌شده معتبر نیست.");try{const defaults={classic:{boardSize:25,targetScore:7,maxPlayers:8,bonus:false,darkCards:1},expanded:{boardSize:35,targetScore:10,maxPlayers:8,bonus:true,darkCards:1},chaos:{boardSize:36,targetScore:12,maxPlayers:8,bonus:true,darkCards:2},duel:{boardSize:16,targetScore:5,maxPlayers:4,bonus:false,darkCards:1}};const settings=defaults[mode];await databaseUpdate("rooms",{game_mode:mode,max_players:settings.maxPlayers,settings},{id:APP.roomId,host_id:APP.user.id});await refreshGameState();}catch(error){console.error(error);showError(error?.message||"تغییر مود انجام نشد.");}});
   document.addEventListener("codname:start-game",async()=>{if(!APP.user||!APP.roomId)return;try{showLoading("در حال شروع Match...");await startGame({roomId:APP.roomId,userId:APP.user.id});await refreshGameState();}catch(error){console.error(error);showError(error?.message||"شروع بازی انجام نشد.");}});
   document.addEventListener("codname:select-card",async(event)=>{if(!APP.user||!APP.roomId||!event.detail?.cardId)return;try{await selectCard({roomId:APP.roomId,userId:APP.user.id,cardId:event.detail.cardId});await refreshGameState();}catch(error){console.error(error);showError(error?.message||"انتخاب کارت انجام نشد.");}});
   document.addEventListener("codname:end-turn",async()=>{if(!APP.user||!APP.roomId)return;try{await endTurn({roomId:APP.roomId,userId:APP.user.id});await refreshGameState();}catch(error){console.error(error);showError(error?.message||"پایان نوبت انجام نشد.");}});
