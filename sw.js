@@ -1,7 +1,7 @@
-const CACHE = 'codname-shell-v20';
+const CACHE = 'codname-shell-v21';
 const ASSETS = [
   './','./index.html','./404.html','./css/style.css','./css/menu-reference.css','./css/effects.css','./css/menu-visuals.css',
-  './js/main.js','./js/pre.js','./js/ios-fix.js','./js/ui.js','./js/ui-fixes.js','./js/install-entry.js','./js/github-auth-ui.js','./js/menu-visuals.js','./js/mobile-clean.js','./js/mobile-game-fix.js','./js/team-roles.js','./js/lobby-format-guard.js','./js/workspace.js','./js/workspace-v2.js','./js/clue-system.js','./js/auth.js','./js/game.js','./js/cards.js','./js/multiplayer.js','./js/player.js','./js/supabase.js',
+  './js/main.js','./js/pre.js','./js/ios-fix.js','./js/ui.js','./js/ui-fixes.js','./js/install-entry.js','./js/github-auth-ui.js','./js/menu-visuals.js','./js/mobile-clean.js','./js/mobile-game-fix.js','./js/mobile-game-repair.js','./js/settings-cleanup.js','./js/leader-team-controls.js','./js/team-roles.js','./js/lobby-format-guard.js','./js/workspace.js','./js/workspace-v2.js','./js/clue-system.js','./js/auth.js','./js/game.js','./js/cards.js','./js/multiplayer.js','./js/player.js','./js/supabase.js',
   './manifest.webmanifest','./assets/logo.svg','./assets/logo-heavy.svg','./assets/favicon.svg','./assets/icon-192.svg','./assets/icon-512.svg','./assets/apple-touch-icon.svg','./assets/hero.svg','./assets/menu-hero.svg','./assets/avatar-agent.svg'
 ];
 self.addEventListener('install',event=>event.waitUntil(caches.open(CACHE).then(cache=>cache.addAll(ASSETS)).then(()=>self.skipWaiting())));
