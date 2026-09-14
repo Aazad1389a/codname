@@ -10,18 +10,10 @@ export async function signUp({ email, password, username }) {
     const supabase = assertSupabase();
     const cleanEmail = String(email || "").trim().toLowerCase();
     const cleanUsername = String(username || "").trim();
-
     if (!cleanEmail || !cleanEmail.includes("@")) throw new Error("ایمیل معتبر وارد کنید.");
     if (password.length < 6) throw new Error("رمز عبور باید حداقل ۶ کاراکتر باشد.");
-    if (!/^[a-zA-Z0-9_-]{3,24}$/.test(cleanUsername)) {
-        throw new Error("نام کاربری باید ۳ تا ۲۴ کاراکتر و فقط شامل حروف انگلیسی، عدد، _ یا - باشد.");
-    }
-
-    const { data, error } = await supabase.auth.signUp({
-        email: cleanEmail,
-        password,
-        options: { data: { username: cleanUsername } }
-    });
+    if (!/^[a-zA-Z0-9_-]{3,24}$/.test(cleanUsername)) throw new Error("نام کاربری باید ۳ تا ۲۴ کاراکتر و فقط شامل حروف انگلیسی، عدد، _ یا - باشد.");
+    const { data, error } = await supabase.auth.signUp({ email: cleanEmail, password, options: { data: { username: cleanUsername } } });
     if (error) throw error;
     return data;
 }
@@ -31,11 +23,7 @@ export async function signIn({ email, password }) {
     const cleanEmail = String(email || "").trim().toLowerCase();
     if (!cleanEmail || !cleanEmail.includes("@")) throw new Error("ایمیل معتبر وارد کنید.");
     if (!password) throw new Error("رمز عبور را وارد کنید.");
-
-    const { data, error } = await supabase.auth.signInWithPassword({
-        email: cleanEmail,
-        password
-    });
+    const { data, error } = await supabase.auth.signInWithPassword({ email: cleanEmail, password });
     if (error) throw error;
     return data;
 }
@@ -45,14 +33,14 @@ export async function signInWithGithub() {
     const redirectTo = `${window.location.origin}${window.location.pathname}`;
     const { data, error } = await supabase.auth.signInWithOAuth({
         provider: "github",
-        options: {
-            redirectTo,
-            scopes: "read:user user:email"
-        }
+        options: { redirectTo, scopes: "read:user user:email" }
     });
     if (error) throw error;
     return data;
 }
+
+// Temporary compatibility alias for the existing UI module; it now starts the GitHub OAuth flow.
+export const signInWithGoogle = signInWithGithub;
 
 export async function signOut() {
     const supabase = assertSupabase();
