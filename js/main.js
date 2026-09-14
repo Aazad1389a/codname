@@ -10,7 +10,7 @@ import { initUI, showScreen, showLobby, showGame, showLoading, showError, update
 import { getCurrentUser, createPlayerProfile, getPlayerProfile } from "./player.js";
 import { getSupabase, databaseUpdate } from "./supabase.js";
 
-const APP={version:"1.5.0",user:null,profile:null,roomId:null,roomCode:null,gameState:null,realtimeChannel:null,initialized:false};
+const APP={version:"1.6.0",user:null,profile:null,roomId:null,roomCode:null,gameState:null,realtimeChannel:null,initialized:false};
 const safe=(fn)=>{try{return fn()}catch(error){console.error(error);return null}};
 
 async function boot(){
@@ -43,6 +43,4 @@ async function setupRealtime(){if(APP.realtimeChannel)await safe(()=>unsubscribe
 async function refreshGameState(){if(!APP.roomId)return;const state=await getGameState(APP.roomId);if(!state)return;APP.gameState=state;updatePlayerList(state.players||[]);if(state.status==="waiting"){showLobby({roomId:APP.roomId,roomCode:APP.roomCode,user:APP.user,profile:APP.profile,players:state.players||[],settings:state.settings||{}});showScreen("lobby");}else if(state.status==="playing"){showGame({roomId:APP.roomId,roomCode:APP.roomCode,user:APP.user,profile:APP.profile,game:state});updateGameUI(state);showScreen("game");}else if(state.status==="finished"){showGame({roomId:APP.roomId,roomCode:APP.roomCode,user:APP.user,profile:APP.profile,game:state});updateGameUI(state);showScreen("result");}}
 async function leaveRoom(){if(APP.realtimeChannel){await safe(()=>unsubscribeFromRoom(APP.realtimeChannel));APP.realtimeChannel=null;}APP.roomId=null;APP.roomCode=null;APP.gameState=null;}
 
-// Authentication is initialized during boot. Deliberately do not navigate or refresh on auth events.
-// OAuth callbacks already arrive as a fresh document request, while email/password auth can update the UI without a page loop.
 window.CODNAME={version:APP.version,getUser:()=>APP.user,getProfile:()=>APP.profile,getRoom:()=>({id:APP.roomId,code:APP.roomCode}),getGameState:()=>APP.gameState,refresh:refreshGameState,leaveRoom};
