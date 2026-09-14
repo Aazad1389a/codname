@@ -1,12 +1,13 @@
 import "./ui-fixes.js";
 import "./install-entry.js";
+import "./github-auth-ui.js";
 import { createGame, joinGame, startGame, selectCard, endTurn, getGameState } from "./game.js";
 import { connectRealtime, subscribeToRoom, unsubscribeFromRoom } from "./multiplayer.js";
 import { initUI, showScreen, showLobby, showGame, showLoading, showError, updateGameUI, updatePlayerList } from "./ui.js";
 import { getCurrentUser, createPlayerProfile, getPlayerProfile } from "./player.js";
 import { getSupabase } from "./supabase.js";
 
-const APP={version:"1.2.1",user:null,profile:null,roomId:null,roomCode:null,gameState:null,realtimeChannel:null,initialized:false};
+const APP={version:"1.3.0",user:null,profile:null,roomId:null,roomCode:null,gameState:null,realtimeChannel:null,initialized:false};
 const safe=(fn)=>{try{return fn()}catch(error){console.error(error);return null}};
 
 async function boot(){
