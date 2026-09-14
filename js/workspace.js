@@ -196,4 +196,6 @@ function boot() {
   injectStyles(); buildOverlay(); installMenuInterceptors(); installLobbyObserver(); installToastBridge(); setTimeout(installVersionBadge,300); setInterval(installVersionBadge,1500);
 }
 
+window.CODNAME_WORKSPACE={open:openWorkspace,close:closeWorkspace};
+
 if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", boot, {once:true}); else boot();
