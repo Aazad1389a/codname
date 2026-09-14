@@ -6,13 +6,14 @@ import "./github-auth-ui.js";
 import "./menu-visuals.js";
 import "./workspace-v2.js";
 import "./clue-system.js";
+import "./mobile-clean.js";
 import { createGame, joinGame, startGame, submitClue, selectCard, endTurn, getGameState } from "./game.js";
 import { connectRealtime, subscribeToRoom, unsubscribeFromRoom } from "./multiplayer.js";
 import { initUI, showScreen, showLobby, showGame, showLoading, showError, updateGameUI, updatePlayerList } from "./ui.js";
 import { getCurrentUser, createPlayerProfile, getPlayerProfile } from "./player.js";
 import { getSupabase, databaseUpdate } from "./supabase.js";
 
-const APP={version:"1.7.1",user:null,profile:null,roomId:null,roomCode:null,gameState:null,realtimeChannel:null,initialized:false};
+const APP={version:"1.7.2",user:null,profile:null,roomId:null,roomCode:null,gameState:null,realtimeChannel:null,initialized:false};
 const safe=(fn)=>{try{return fn()}catch(error){console.error(error);return null}};
 
 async function boot(){
