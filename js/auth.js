@@ -40,17 +40,14 @@ export async function signIn({ email, password }) {
     return data;
 }
 
-export async function signInWithGoogle() {
+export async function signInWithGithub() {
     const supabase = assertSupabase();
     const redirectTo = `${window.location.origin}${window.location.pathname}`;
     const { data, error } = await supabase.auth.signInWithOAuth({
-        provider: "google",
+        provider: "github",
         options: {
             redirectTo,
-            queryParams: {
-                access_type: "offline",
-                prompt: "select_account"
-            }
+            scopes: "read:user user:email"
         }
     });
     if (error) throw error;
