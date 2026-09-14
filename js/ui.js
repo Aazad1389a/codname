@@ -22,6 +22,15 @@ function cacheRefs() {
   state.refs.joinModal=$("[data-join-modal]"); state.refs.joinForm=$("[data-join-form]");
 }
 
+function openWorkspaceFallback(panel){
+  const workspace = window.CODNAME_WORKSPACE;
+  if (workspace?.open) {
+    workspace.open(panel);
+    return true;
+  }
+  return false;
+}
+
 function bindButtons() {
   document.addEventListener("click", (event) => {
     const button = event.target.closest("[data-action]");
@@ -45,11 +54,27 @@ function bindButtons() {
     if (action === "google-login") handleGoogleLogin();
     if (action === "logout") handleLogout();
     if (action === "close-join") closeJoin();
-    if (action === "show-profile") focusSection(".account-panel", "پروفایل");
-    if (action === "show-leaderboard") focusSection(".ranking-panel", "رتبه‌بندی");
-    if (action === "show-decks") focusSection(".lower-grid", "دسته‌های کارت");
-    if (action === "show-settings") showError("تنظیمات بازی در نسخه‌ی بعدی اضافه می‌شود.");
-    if (action === "show-modes") focusSection(".primary-actions-grid", "حالت‌های بازی");
+
+    if (action === "show-profile") {
+      if (!openWorkspaceFallback("profile")) focusSection(".account-panel", "پروفایل");
+      return;
+    }
+    if (action === "show-leaderboard") {
+      if (!openWorkspaceFallback("leaderboard")) focusSection(".ranking-panel", "رتبه‌بندی");
+      return;
+    }
+    if (action === "show-decks") {
+      if (!openWorkspaceFallback("decks")) focusSection(".lower-grid", "دسته‌های کارت");
+      return;
+    }
+    if (action === "show-settings") {
+      if (!openWorkspaceFallback("settings")) showError("تنظیمات در دسترس نیست.");
+      return;
+    }
+    if (action === "show-modes") {
+      if (!openWorkspaceFallback("modes")) focusSection(".primary-actions-grid", "حالت‌های بازی");
+      return;
+    }
   });
 
   $$('[data-mode-pick]').forEach(button => button.addEventListener("click", () => {
@@ -150,7 +175,7 @@ export function showLobby(data={}){state.roomCode=data.roomCode||state.roomCode;
 export function showGame({game}={}){renderBoard(game?.board||[],game?.revealed||[],game?.currentTurn);renderPlayers(game?.players||[]);}
 export function updatePlayerList(players=[]){renderPlayers(players);}
 function renderPlayers(players){if(!state.refs.players)return;state.refs.players.innerHTML="";for(const player of players){const item=document.createElement("div");item.className=`player-item team-${player.team||"neutral"}`;item.innerHTML=`<span>${player.last_seen_at?"●":"○"}</span><strong>${escapeHtml(player.display_name||"Player")}</strong><small>${escapeHtml(player.team||"pending")}</small>${player.is_host?"<em>HOST</em>":""}`;state.refs.players.appendChild(item);}}
-function renderBoard(board=[],revealed=[],currentTurn){if(!state.refs.board)return;state.refs.board.innerHTML="";const isTurn=currentTurn&&state.user?.id===currentTurn;for(const card of board){const shown=revealed.includes(card.position)||card.revealed;const button=document.createElement("button");button.type="button";button.className=`word-card ${shown?"is-revealed":""} ${card.bonus?"is-bonus":""}`;button.dataset.cardId=card.id;button.disabled=shown||!isTurn;button.innerHTML=`<span class="word">${escapeHtml(card.word)}</span><span class="card-index">${card.position+1}</span>`;if(shown&&card.type)button.dataset.type=card.type;button.addEventListener("click",()=>document.dispatchEvent(new CustomEvent("codname:select-card",{detail:{cardId:card.id}})));state.refs.board.appendChild(button);}}
+function renderBoard(board=[],revealed=[],currentTurn){if(!state.refs.board)return;state.refs.board.innerHTML="";const isTurn=currentTurn&&state.user?.id===currentTurn;for(const card of board){const shown=revealed.includes(card.position)||card.revealed;const button=document.createElement("button");button.type="button";button.className=`word-card ${shown?"is-revealed":""} ${card.bonus?"is-bonus":""}`;button.disabled=shown||!isTurn;button.dataset.cardId=card.id;button.innerHTML=`<span class="word">${escapeHtml(card.word)}</span><span class="card-index">${card.position+1}</span>`;if(shown&&card.type)button.dataset.type=card.type;button.addEventListener("click",()=>document.dispatchEvent(new CustomEvent("codname:select-card",{detail:{cardId:card.id}})));state.refs.board.appendChild(button);}}
 export function updateGameUI(game={}){renderBoard(game.board||[],game.revealed||[],game.currentTurn);renderPlayers(game.players||[]);if(state.refs.clue)state.refs.clue.textContent=game.clue?`${game.clue.text} × ${game.clue.number}`:"بدون سرنخ";if(state.refs.turn)state.refs.turn.textContent=game.turnTeam?`نوبت تیم ${game.turnTeam==="red"?"قرمز":"آبی"}`:"-";if(state.refs.scoreRed)state.refs.scoreRed.textContent=String(game.scores?.red||0);if(state.refs.scoreBlue)state.refs.scoreBlue.textContent=String(game.scores?.blue||0);if(game.winnerTeam)showResult(game.winnerTeam,game.scores);}
 function showResult(team,scores={}){$("[data-winner]")&&($("[data-winner]").textContent=team==="red"?"تیم قرمز برنده شد":"تیم آبی برنده شد");$("[data-final-score]")&&($("[data-final-score]").textContent=`${scores.red||0} - ${scores.blue||0}`);}
 function escapeHtml(value){return String(value).replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;").replaceAll("'","&#039;");}
