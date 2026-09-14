@@ -212,7 +212,7 @@ export async function startGame({ roomId, userId } = {}) {
     card_id: null,
     card_type: card.type,
     revealed: false,
-    reveal_value: card.type === CARD_TYPES.BONUS ? 2 : 1
+    reveal_value: card.type === CARD_TYPES.BONUS ? 2 : (card.type === CARD_TYPES.DARK ? -1 : 1)
   })));
 
   const firstPlayer = players.find((p) => p.team === "red")?.user_id || players[0]?.user_id;
@@ -253,8 +253,8 @@ export async function selectCard({ roomId, userId, cardId } = {}) {
 
   const nextScores = { ...(state.scores || { red: 0, blue: 0 }) };
   const nextRevealed = [...(state.revealed || []), position];
-  const points = card.type === team ? (card.bonus ? 2 : 1) : 0;
-  nextScores[team] = Math.max(0, (nextScores[team] || 0) + points);
+  const points = card.type === CARD_TYPES.DARK ? -1 : (card.type === team ? (card.bonus ? 2 : 1) : 0);
+  nextScores[team] = (nextScores[team] || 0) + points;
 
   await databaseUpdate("match_cards", { revealed: true, revealed_by: userId, reveal_value: points }, { match_id: state.matchId, position });
   await databaseInsert("match_events", { match_id: state.matchId, actor_id: userId, event_type: "card_revealed", payload: { position, type: card.type, points, source: "normal_turn" } });
