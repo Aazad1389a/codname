@@ -33,6 +33,16 @@ function openWorkspaceFallback(panel){
 
 function bindButtons() {
   document.addEventListener("click", (event) => {
+    const teamButton = event.target.closest("[data-team-switch]");
+    if (teamButton) {
+      event.preventDefault();
+      const targetTeam = teamButton.dataset.teamSwitch;
+      if (targetTeam === "red" || targetTeam === "blue") {
+        document.dispatchEvent(new CustomEvent("codname:change-team", { detail: { team: targetTeam } }));
+      }
+      return;
+    }
+
     const button = event.target.closest("[data-action]");
     const action = button?.dataset.action;
     if (!action) return;
@@ -174,7 +184,19 @@ export function showError(message){console.error(message);if(state.refs.toast){s
 export function showLobby(data={}){state.roomCode=data.roomCode||state.roomCode;$$('[data-room-code]').forEach(el=>el.textContent=state.roomCode||"------");renderPlayers(data.players||[]);const start=$("[data-action='start-game']");const isHost=data.players?.find(p=>p.user_id===data.user?.id)?.is_host;if(start)start.disabled=!isHost||(data.players||[]).length<2;}
 export function showGame({game}={}){renderBoard(game?.board||[],game?.revealed||[],game?.currentTurn);renderPlayers(game?.players||[]);}
 export function updatePlayerList(players=[]){renderPlayers(players);}
-function renderPlayers(players){if(!state.refs.players)return;state.refs.players.innerHTML="";for(const player of players){const item=document.createElement("div");item.className=`player-item team-${player.team||"neutral"}`;item.innerHTML=`<span>${player.last_seen_at?"●":"○"}</span><strong>${escapeHtml(player.display_name||"Player")}</strong><small>${escapeHtml(player.team||"pending")}</small>${player.is_host?"<em>HOST</em>":""}`;state.refs.players.appendChild(item);}}
+function renderPlayers(players){
+  if(!state.refs.players)return;
+  state.refs.players.innerHTML="";
+  for(const player of players){
+    const isMe=player.user_id===state.user?.id;
+    const team=player.team||"neutral";
+    const item=document.createElement("div");
+    item.className=`player-item team-${team}`;
+    item.innerHTML=`<span>${player.last_seen_at?"●":"○"}</span><strong>${escapeHtml(player.display_name||"Player")}</strong><span class="team-label">${teamLabel(team)}</span>${player.is_host?"<em>HOST</em>":""}${isMe&&team!=="neutral"?`<div class="team-switch" role="group" aria-label="تغییر تیم"><button type="button" class="team-btn team-btn-red ${team==="red"?"is-selected":""}" data-team-switch="red">قرمز</button><button type="button" class="team-btn team-btn-blue ${team==="blue"?"is-selected":""}" data-team-switch="blue">آبی</button></div>`:""}`;
+    state.refs.players.appendChild(item);
+  }
+}
+function teamLabel(team){return ({red:"تیم قرمز",blue:"تیم آبی"}[team]||"بدون تیم");}
 function renderBoard(board=[],revealed=[],currentTurn){if(!state.refs.board)return;state.refs.board.innerHTML="";const isTurn=currentTurn&&state.user?.id===currentTurn;for(const card of board){const shown=revealed.includes(card.position)||card.revealed;const button=document.createElement("button");button.type="button";button.className=`word-card ${shown?"is-revealed":""} ${card.bonus?"is-bonus":""}`;button.disabled=shown||!isTurn;button.dataset.cardId=card.id;button.innerHTML=`<span class="word">${escapeHtml(card.word)}</span><span class="card-index">${card.position+1}</span>`;if(shown&&card.type)button.dataset.type=card.type;button.addEventListener("click",()=>document.dispatchEvent(new CustomEvent("codname:select-card",{detail:{cardId:card.id}})));state.refs.board.appendChild(button);}}
 export function updateGameUI(game={}){renderBoard(game.board||[],game.revealed||[],game.currentTurn);renderPlayers(game.players||[]);if(state.refs.clue)state.refs.clue.textContent=game.clue?`${game.clue.text} × ${game.clue.number}`:"بدون سرنخ";if(state.refs.turn)state.refs.turn.textContent=game.turnTeam?`نوبت تیم ${game.turnTeam==="red"?"قرمز":"آبی"}`:"-";if(state.refs.scoreRed)state.refs.scoreRed.textContent=String(game.scores?.red||0);if(state.refs.scoreBlue)state.refs.scoreBlue.textContent=String(game.scores?.blue||0);if(game.winnerTeam)showResult(game.winnerTeam,game.scores);}
 function showResult(team,scores={}){$("[data-winner]")&&($("[data-winner]").textContent=team==="red"?"تیم قرمز برنده شد":"تیم آبی برنده شد");$("[data-final-score]")&&($("[data-final-score]").textContent=`${scores.red||0} - ${scores.blue||0}`);}
