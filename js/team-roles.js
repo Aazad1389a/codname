@@ -1,25 +1,115 @@
 import { getSupabase } from "./supabase.js";
 
-const STYLE_ID="codname-team-roles-style";
-const state={format:"2v2"};
-const esc=v=>String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[c]));
-function installStyles(){if(document.getElementById(STYLE_ID))return;const style=document.createElement("style");style.id=STYLE_ID;style.textContent=`
-.cn-format-box{margin:14px 0 0;padding:12px;border:1px solid rgba(255,255,255,.09);border-radius:16px;background:rgba(255,255,255,.03)}
-.cn-format-head{display:flex;justify-content:space-between;gap:10px;align-items:center;margin-bottom:10px}.cn-format-head b{font-size:12px}.cn-format-head small{font-size:9px;opacity:.58}
-.cn-format-tabs{display:grid;grid-template-columns:1fr 1fr;gap:8px}.cn-format-tab{min-height:48px;border:1px solid rgba(255,255,255,.1);border-radius:12px;background:rgba(255,255,255,.04);color:#dfe6f1;font:inherit;font-weight:800;cursor:pointer}.cn-format-tab small{display:block;font-size:8px;opacity:.55;margin-top:3px}.cn-format-tab.active{border-color:rgba(74,143,255,.5);background:rgba(74,143,255,.14)}.cn-format-tab:disabled{opacity:.45;cursor:not-allowed}
-.cn-role-summary{margin-top:10px;display:grid;grid-template-columns:1fr 1fr;gap:8px}.cn-role-card{padding:10px;border-radius:12px;border:1px solid rgba(255,255,255,.08);background:rgba(0,0,0,.16)}.cn-role-card h4{margin:0 0 7px;font-size:10px}.cn-role-row{display:flex;justify-content:space-between;gap:8px;padding:4px 0;font-size:9px;border-top:1px solid rgba(255,255,255,.05)}.cn-role-row:first-of-type{border-top:0}.cn-role-row span{opacity:.56}.cn-role-row b{font-size:9px;text-align:left}.cn-role-note{margin:8px 0 0;font-size:9px;line-height:1.7;opacity:.6}
-.cn-game-role{margin:8px auto 0;padding:8px 10px;border-radius:12px;border:1px solid rgba(255,255,255,.08);background:rgba(255,255,255,.035);font-size:10px;text-align:center}
-@media(max-width:700px){.cn-format-box{margin-top:10px}.cn-role-summary{grid-template-columns:1fr}.cn-format-tab{min-height:46px}}
-`;document.head.appendChild(style)}
-function playersFor(players,team){return(players||[]).filter(p=>p.team===team)}
-function roleData(players,format){const out={};for(const team of ["red","blue"]){const members=playersFor(players,team);out[team]=format==="1v1"?{clueGiver:null,guessers:members}:{clueGiver:members[0]||null,guessers:members.slice(1)};}return out}
-function name(p){return p?.display_name||p?.username||"بازیکن"}
-function formatOf(settings={},mode="classic"){return settings.playerFormat||(mode==="duel"?"1v1":"2v2")}
-function requiredFor(format){return format==="1v1"?2:4}
-function ensureLobbyBox(){const visual=document.querySelector("#screen-lobby .lobby-visual");if(!visual)return null;let box=visual.querySelector("[data-format-box]");if(!box){box=document.createElement("section");box.className="cn-format-box";box.dataset.formatBox="1";visual.appendChild(box)}return box}
-function renderLobby(stateData){const visual=document.querySelector("#screen-lobby .lobby-visual");if(!visual)return;const box=ensureLobbyBox();const players=stateData?.players||[];const settings=stateData?.settings||{};const format=formatOf(settings,stateData?.mode);state.format=format;const roles=roleData(players,format);const me=players.find(p=>p.user_id===window.CODNAME?.getUser?.()?.id);const host=Boolean(me?.is_host);const enough=format==="1v1"?players.length===2:(players.length>=4&&playersFor(players,"red").length>=2&&playersFor(players,"blue").length>=2);box.innerHTML=`<div class="cn-format-head"><b>نوع مسابقه</b><small>${format==="1v1"?"۱ در برابر ۱":"۲ به ۲ و بیشتر"}</small></div><div class="cn-format-tabs"><button type="button" class="cn-format-tab ${format==="1v1"?"active":""}" data-room-format="1v1" ${host?"":"disabled"}>۱ به ۱<small>هر بازیکن سرنخ و جواب می‌دهد</small></button><button type="button" class="cn-format-tab ${format==="2v2"?"active":""}" data-room-format="2v2" ${host?"":"disabled"}>۲ به ۲<small>سرنخ‌دهنده + پیدا کننده</small></button></div><div class="cn-role-summary"><div class="cn-role-card"><h4>🔴 تیم قرمز</h4><div class="cn-role-row"><span>سرنخ‌دهنده</span><b>${format==="1v1"?"همان بازیکن":esc(name(roles.red.clueGiver)||"—")}</b></div><div class="cn-role-row"><span>پیدا کننده</span><b>${format==="1v1"?"همان بازیکن":esc(roles.red.guessers.map(name).join("، ")||"—")}</b></div></div><div class="cn-role-card"><h4>🔵 تیم آبی</h4><div class="cn-role-row"><span>سرنخ‌دهنده</span><b>${format==="1v1"?"همان بازیکن":esc(name(roles.blue.clueGiver)||"—")}</b></div><div class="cn-role-row"><span>پیدا کننده</span><b>${format==="1v1"?"همان بازیکن":esc(roles.blue.guessers.map(name).join("، ")||"—")}</b></div></div></div><p class="cn-role-note">در ۱ به ۱ نقش جدا وجود ندارد؛ هر بازیکن خودش سرنخ می‌دهد و کارت مرتبط را پیدا می‌کند. در ۲ به ۲ و بالاتر، سرنخ‌دهنده فقط سرنخ تیم خودش را می‌بیند و پیدا کننده‌ها فقط جواب می‌دهند.</p>${host&&!enough?`<p class="cn-role-note">برای شروع این حالت حداقل ${requiredFor(format)} بازیکن لازم است${format==="2v2"?" و هر تیم باید حداقل دو نفر داشته باشد":""}.</p>`:""}`;box.querySelectorAll("[data-room-format]").forEach(button=>button.addEventListener("click",()=>changeFormat(button.dataset.roomFormat,players,settings)))}
-async function changeFormat(format,players,settings){if(format!=="1v1"&&format!=="2v2")return;if(format==="1v1"&&players.length>2){toast("برای ۱ به ۱ حداکثر ۲ بازیکن باید در اتاق باشند.");return}const roomId=window.CODNAME?.getRoom?.()?.id;const user=window.CODNAME?.getUser?.();if(!roomId||!user)return;try{const supabase=getSupabase();const next={...(settings||{}),playerFormat:format,maxPlayers:format==="1v1"?2:8};const{error}=await supabase.from("rooms").update({settings:next,max_players:next.maxPlayers}).eq("id",roomId).eq("host_id",user.id);if(error)throw error;document.dispatchEvent(new CustomEvent("codname:room-format-changed",{detail:{format}}))}catch(error){console.error(error);toast(error?.message||"تغییر نوع مسابقه انجام نشد.")}}
-function toast(message){const t=document.querySelector("[data-toast]");if(!t)return;t.textContent=message;t.classList.add("is-visible");clearTimeout(toast._timer);toast._timer=setTimeout(()=>t.classList.remove("is-visible"),3200)}
-function renderGameRole(data){const gamebar=document.querySelector("#screen-game .gamebar");if(!gamebar||!data)return;let box=gamebar.querySelector("[data-game-role]");if(!box){box=document.createElement("div");box.className="cn-game-role";box.dataset.gameRole="1";gamebar.appendChild(box)}const format=formatOf(data.settings,data.mode);const me=window.CODNAME?.getUser?.()?.id;if(format==="1v1"){box.textContent="";box.style.display="none";return}box.style.display="block";const roles=roleData(data.players||[],format);const team=data.turnTeam;const active=roles[team]||{};if(data.phase==="clue"){if(me===active.clueGiver)box.textContent=`نقش تو: سرنخ‌دهنده تیم ${team==="red"?"قرمز":"آبی"} — فقط سرنخ همین تیم را ثبت کن.`;else if((active.guessers||[]).some(p=>p.user_id===me))box.textContent=`نقش تو: پیدا کننده تیم ${team==="red"?"قرمز":"آبی"} — منتظر سرنخ هم‌تیمی.`;else box.textContent=`نوبت تیم ${team==="red"?"قرمز":"آبی"}`;}else{if((active.guessers||[]).some(p=>p.user_id===me))box.textContent=`نقش تو: پیدا کننده تیم ${team==="red"?"قرمز":"آبی"} — کارت مرتبط را پیدا کن.`;else if(me===active.clueGiver)box.textContent=`نقش تو: سرنخ‌دهنده تیم ${team==="red"?"قرمز":"آبی"} — منتظر انتخاب هم‌تیمی.`;else box.textContent=`مرحله پیدا کردن کارت — نوبت ${name(data.players?.find(p=>p.user_id===data.currentTurn))}`}}
-function boot(){installStyles();document.addEventListener("codname:game-state",e=>{renderLobby(e.detail);renderGameRole(e.detail)});document.addEventListener("codname:room-format-changed",()=>window.CODNAME?.refresh?.());setTimeout(()=>{const s=window.CODNAME?.getGameState?.();if(s){renderLobby(s);renderGameRole(s)}},150)}
-document.addEventListener("DOMContentLoaded",boot,{once:true});
+const STYLE_ID = "codname-team-roles-style-v2";
+const esc = (value) => String(value ?? "").replace(/[&<>\"']/g, (c) => ({ "&":"&amp;", "<":"&lt;", ">":"&gt;", "\"":"&quot;", "'":"&#039;" }[c]));
+
+function installStyles() {
+  if (document.getElementById(STYLE_ID)) return;
+  const style = document.createElement("style");
+  style.id = STYLE_ID;
+  style.textContent = `
+    .cn-format-box{margin:14px 0 0;padding:12px;border:1px solid rgba(255,255,255,.09);border-radius:16px;background:rgba(255,255,255,.03)}
+    .cn-format-head{display:flex;justify-content:space-between;gap:10px;align-items:center;margin-bottom:10px}.cn-format-head b{font-size:12px}.cn-format-head small{font-size:9px;opacity:.58}
+    .cn-format-tabs{display:grid;grid-template-columns:1fr 1fr;gap:8px}.cn-format-tab{min-height:48px;border:1px solid rgba(255,255,255,.1);border-radius:12px;background:rgba(255,255,255,.04);color:#dfe6f1;font:inherit;font-weight:800;cursor:pointer}.cn-format-tab small{display:block;font-size:8px;opacity:.55;margin-top:3px}.cn-format-tab.active{border-color:rgba(74,143,255,.5);background:rgba(74,143,255,.14)}.cn-format-tab:disabled{opacity:.45;cursor:not-allowed}
+    .cn-team-summary{margin-top:10px;display:grid;grid-template-columns:1fr 1fr;gap:8px}.cn-team-card{padding:10px;border-radius:12px;border:1px solid rgba(255,255,255,.08);background:rgba(0,0,0,.16)}.cn-team-card h4{margin:0 0 7px;font-size:10px}.cn-team-row{padding:4px 0;font-size:9px;border-top:1px solid rgba(255,255,255,.05)}.cn-team-row:first-of-type{border-top:0}.cn-team-note{margin:8px 0 0;font-size:9px;line-height:1.7;opacity:.6}
+    @media(max-width:700px){.cn-format-box{margin-top:10px}.cn-team-summary{grid-template-columns:1fr}.cn-format-tab{min-height:46px}}
+  `;
+  document.head.appendChild(style);
+}
+
+function playersFor(players, team) {
+  return (players || []).filter((player) => player.team === team);
+}
+
+function formatOf(settings = {}, mode = "classic") {
+  return settings.playerFormat || (mode === "duel" ? "1v1" : "2v2");
+}
+
+function requiredFor(format) {
+  return format === "1v1" ? 2 : 4;
+}
+
+function ensureLobbyBox() {
+  const visual = document.querySelector("#screen-lobby .lobby-visual");
+  if (!visual) return null;
+  let box = visual.querySelector("[data-format-box]");
+  if (!box) {
+    box = document.createElement("section");
+    box.className = "cn-format-box";
+    box.dataset.formatBox = "1";
+    visual.appendChild(box);
+  }
+  return box;
+}
+
+function renderLobby(stateData) {
+  const box = ensureLobbyBox();
+  if (!box) return;
+  const players = stateData?.players || [];
+  const settings = stateData?.settings || {};
+  const format = formatOf(settings, stateData?.mode);
+  const me = players.find((player) => player.user_id === window.CODNAME?.getUser?.()?.id);
+  const host = Boolean(me?.is_host);
+  const red = playersFor(players, "red");
+  const blue = playersFor(players, "blue");
+  const enough = format === "1v1"
+    ? players.length === 2 && red.length === 1 && blue.length === 1
+    : players.length >= 4 && red.length >= 2 && blue.length >= 2;
+
+  box.innerHTML = `
+    <div class="cn-format-head"><b>نوع مسابقه</b><small>${format === "1v1" ? "۱ در برابر ۱" : "۲ به ۲ و بیشتر"}</small></div>
+    <div class="cn-format-tabs">
+      <button type="button" class="cn-format-tab ${format === "1v1" ? "active" : ""}" data-room-format="1v1" ${host ? "" : "disabled"}>۱ به ۱<small>هر بازیکن به نوبت بازی می‌کند</small></button>
+      <button type="button" class="cn-format-tab ${format === "2v2" ? "active" : ""}" data-room-format="2v2" ${host ? "" : "disabled"}>۲ به ۲<small>تیمی و نوبتی، بدون سرنخ‌دهنده</small></button>
+    </div>
+    <div class="cn-team-summary">
+      <div class="cn-team-card"><h4>🔴 تیم قرمز</h4><div class="cn-team-row">${red.length ? esc(red.map((p) => p.display_name || "بازیکن").join("، ")) : "هنوز بازیکنی نیست"}</div></div>
+      <div class="cn-team-card"><h4>🔵 تیم آبی</h4><div class="cn-team-row">${blue.length ? esc(blue.map((p) => p.display_name || "بازیکن").join("، ")) : "هنوز بازیکنی نیست"}</div></div>
+    </div>
+    <p class="cn-team-note">در همه حالت‌ها سرنخ‌دهنده وجود ندارد؛ بازیکن‌ها خودشان و به نوبت کارت انتخاب می‌کنند. لیدر می‌تواند تیم هم‌تیمی‌ها را در لابی جابه‌جا کند.</p>
+    ${host && !enough ? `<p class="cn-team-note">برای شروع این حالت حداقل ${requiredFor(format)} بازیکن لازم است${format === "2v2" ? " و هر تیم باید حداقل دو نفر داشته باشد" : ""}.</p>` : ""}
+  `;
+
+  box.querySelectorAll("[data-room-format]").forEach((button) => {
+    button.addEventListener("click", () => changeFormat(button.dataset.roomFormat, players, settings));
+  });
+}
+
+async function changeFormat(format, players, settings) {
+  if (format !== "1v1" && format !== "2v2") return;
+  if (format === "1v1" && players.length > 2) return toast("برای ۱ به ۱ حداکثر ۲ بازیکن باید در اتاق باشند.");
+  const roomId = window.CODNAME?.getRoom?.()?.id;
+  const user = window.CODNAME?.getUser?.();
+  if (!roomId || !user) return;
+  try {
+    const supabase = getSupabase();
+    const next = { ...(settings || {}), playerFormat: format, maxPlayers: format === "1v1" ? 2 : 8 };
+    const { error } = await supabase.from("rooms").update({ settings: next, max_players: next.maxPlayers }).eq("id", roomId).eq("host_id", user.id);
+    if (error) throw error;
+    document.dispatchEvent(new CustomEvent("codname:room-format-changed", { detail: { format } }));
+  } catch (error) {
+    console.error(error);
+    toast(error?.message || "تغییر نوع مسابقه انجام نشد.");
+  }
+}
+
+function toast(message) {
+  const t = document.querySelector("[data-toast]");
+  if (!t) return;
+  t.textContent = message;
+  t.classList.add("is-visible");
+  clearTimeout(toast._timer);
+  toast._timer = setTimeout(() => t.classList.remove("is-visible"), 3200);
+}
+
+function boot() {
+  installStyles();
+  document.addEventListener("codname:game-state", (event) => renderLobby(event.detail));
+  document.addEventListener("codname:room-format-changed", () => window.CODNAME?.refresh?.());
+  setTimeout(() => {
+    const state = window.CODNAME?.getGameState?.();
+    if (state) renderLobby(state);
+  }, 150);
+}
+
+document.addEventListener("DOMContentLoaded", boot, { once: true });
