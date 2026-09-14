@@ -1,7 +1,7 @@
-const CACHE = 'codname-shell-v5';
+const CACHE = 'codname-shell-v6';
 const ASSETS = [
   './', './index.html', './css/style.css', './css/menu-reference.css', './css/effects.css',
-  './js/main.js', './js/ui.js', './js/ui-fixes.js', './js/auth.js', './js/game.js', './js/cards.js', './js/multiplayer.js', './js/player.js', './js/supabase.js',
+  './js/main.js', './js/ui.js', './js/ui-fixes.js', './js/install-entry.js', './js/auth.js', './js/game.js', './js/cards.js', './js/multiplayer.js', './js/player.js', './js/supabase.js',
   './manifest.webmanifest', './assets/logo.svg', './assets/favicon.svg', './assets/icon-192.svg', './assets/icon-512.svg', './assets/apple-touch-icon.svg', './assets/hero.svg', './assets/menu-hero.svg', './assets/avatar-agent.svg'
 ];
 self.addEventListener('install',event=>event.waitUntil(caches.open(CACHE).then(cache=>cache.addAll(ASSETS)).then(()=>self.skipWaiting())));
