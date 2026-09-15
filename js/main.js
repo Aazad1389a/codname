@@ -20,8 +20,9 @@ import { initUI, showScreen, showLobby, showGame, showLoading, showError, update
 import { getCurrentUser, createPlayerProfile, getPlayerProfile } from "./player.js";
 import { getSupabase, databaseUpdate } from "./supabase.js";
 
-const APP = { version: "2.0.1", user: null, profile: null, roomId: null, roomCode: null, gameState: null, realtimeChannel: null, initialized: false };
+const APP = { version: "2.0.2", user: null, profile: null, roomId: null, roomCode: null, gameState: null, realtimeChannel: null, initialized: false };
 const safe = (fn) => { try { return fn(); } catch (error) { console.error(error); return null; } };
+const VALID_MODES = new Set(["classic", "expanded", "chaos", "duel"]);
 
 async function boot() {
   showLoading("در حال آماده‌سازی CODNAME...");
@@ -47,8 +48,15 @@ document.addEventListener("DOMContentLoaded", () => boot().catch((error) => {
 function bindAppEvents() {
   document.addEventListener("codname:create-room", async (e) => {
     if (!APP.user) return showError("ابتدا وارد حساب شوید.");
-    try { showLoading("در حال ساخت اتاق..."); const r = await createGame({ userId: APP.user.id, ...(e.detail || {}) }); APP.roomId = r.roomId; APP.roomCode = r.roomCode; await enterLobby(); }
-    catch (error) { console.error(error); showError(error?.message || "ساخت اتاق انجام نشد."); showScreen("menu"); }
+    try {
+      const detail = { ...(e.detail || {}) };
+      const preferredMode = localStorage.getItem("codname-mode");
+      if (VALID_MODES.has(preferredMode)) detail.mode = preferredMode;
+      showLoading("در حال ساخت اتاق...");
+      const r = await createGame({ userId: APP.user.id, ...detail });
+      APP.roomId = r.roomId; APP.roomCode = r.roomCode;
+      await enterLobby();
+    } catch (error) { console.error(error); showError(error?.message || "ساخت اتاق انجام نشد."); showScreen("menu"); }
   });
 
   document.addEventListener("codname:join-room", async (e) => {
@@ -60,21 +68,36 @@ function bindAppEvents() {
   });
 
   document.addEventListener("codname:change-room-mode", async (e) => {
-    if (!APP.user || !APP.roomId) return;
     const mode = String(e.detail?.mode || "");
-    if (!{ classic: 1, expanded: 1, chaos: 1, duel: 1 }[mode]) return showError("مود انتخاب‌شده معتبر نیست.");
+    if (!VALID_MODES.has(mode)) return showError("مود انتخاب‌شده معتبر نیست.");
+    localStorage.setItem("codname-mode", mode);
+    if (!APP.user || !APP.roomId) {
+      showError(`مود ${mode} برای ساخت اتاق بعدی ذخیره شد.`);
+      return;
+    }
     try {
+      const cur = await getGameState(APP.roomId);
+      if (!cur) throw new Error("اتاق پیدا نشد.");
+      if (cur.status !== "waiting") throw new Error("مود فقط قبل از شروع بازی قابل تغییر است.");
+      const me = cur.players?.find((p) => p.user_id === APP.user.id);
+      if (!me?.is_host) throw new Error("فقط لیدر اتاق می‌تواند مود را تغییر دهد.");
       const defaults = {
         classic: { boardSize: 25, targetScore: 7, bonus: false, darkCards: 1 },
         expanded: { boardSize: 35, targetScore: 10, bonus: true, darkCards: 1 },
         chaos: { boardSize: 36, targetScore: 12, bonus: true, darkCards: 2 },
         duel: { boardSize: 16, targetScore: 5, bonus: false, darkCards: 1 }
       }[mode];
-      const cur = await getGameState(APP.roomId);
-      const playerFormat = cur?.settings?.playerFormat || (mode === "duel" ? "1v1" : "2v2");
+      const playerFormat = mode === "duel" ? "1v1" : "2v2";
       const settings = { ...defaults, playerFormat, maxPlayers: playerFormat === "1v1" ? 2 : 8 };
-      await databaseUpdate("rooms", { game_mode: mode, max_players: settings.maxPlayers, settings }, { id: APP.roomId, host_id: APP.user.id });
+      const rows = await databaseUpdate("rooms", {
+        game_mode: mode,
+        max_players: settings.maxPlayers,
+        settings,
+        turn_team: "red"
+      }, { id: APP.roomId });
+      if (!rows.length) throw new Error("تغییر مود در اتاق ذخیره نشد. دسترسی لیدر را بررسی کن.");
       await refreshGameState();
+      showError(`مود ${mode} با موفقیت روی اتاق اعمال شد.`);
     } catch (error) { console.error(error); showError(error?.message || "تغییر مود انجام نشد."); }
   });
 
