@@ -7,6 +7,7 @@ import "./menu-visuals.js";
 import "./workspace-v2.js";
 import "./mobile-clean.js";
 import "./mobile-scroll-final.js";
+import "./desktop-scroll-final.js";
 import "./team-roles.js";
 import "./mobile-game-fix.js";
 import "./mobile-game-repair.js";
@@ -20,7 +21,7 @@ import { initUI, showScreen, showLobby, showGame, showLoading, showError, update
 import { getCurrentUser, createPlayerProfile, getPlayerProfile } from "./player.js";
 import { getSupabase, databaseUpdate } from "./supabase.js";
 
-const APP = { version: "2.0.2", user: null, profile: null, roomId: null, roomCode: null, gameState: null, realtimeChannel: null, initialized: false };
+const APP = { version: "2.0.3", user: null, profile: null, roomId: null, roomCode: null, gameState: null, realtimeChannel: null, initialized: false };
 const safe = (fn) => { try { return fn(); } catch (error) { console.error(error); return null; } };
 const VALID_MODES = new Set(["classic", "expanded", "chaos", "duel"]);
 
