@@ -20,16 +20,17 @@
     return original(fn, delay, ...args);
   };
 
-  // Never leave the user on the loading screen indefinitely.
+  // Give the module graph (including the optional Persian dictionary) enough time
+  // to finish before the emergency menu fallback takes over.
   window.addEventListener("DOMContentLoaded", () => {
     original(() => {
       const loading = document.querySelector("#screen-loading");
       const menu = document.querySelector("#screen-menu");
       if (!loading || !menu) return;
-      if (document.querySelector(".screen.is-active:not(#screen-loading)")) return;
+      if (window.CODNAME || document.querySelector(".screen.is-active:not(#screen-loading)")) return;
       loading.classList.remove("is-active");
       menu.classList.add("is-active");
       console.warn("CODNAME: loading failsafe opened the main menu");
-    }, 10000);
+    }, 30000);
   }, { once: true });
 })();
