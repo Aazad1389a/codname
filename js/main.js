@@ -91,7 +91,7 @@ function bindAppEvents() {
       }[mode];
       const playerFormat = mode === "duel" ? "1v1" : "2v2";
       const settings = { ...defaults, playerFormat, maxPlayers: playerFormat === "1v1" ? 2 : 8, mode };
-      const rows = await databaseUpdate("rooms", { game_mode: mode, max_players: settings.maxPlayers, settings, turn_team: "red", game_state: { ...(cur.settings ? {} : {}), ...(cur.gameState || {}) } }, { id: APP.roomId });
+      const rows = await databaseUpdate("rooms", { game_mode: mode, max_players: settings.maxPlayers, settings, turn_team: "red" }, { id: APP.roomId });
       if (!rows.length) throw new Error("تغییر مود در اتاق ذخیره نشد. دسترسی لیدر را بررسی کن.");
       localStorage.setItem("codname-mode", mode);
       await refreshGameState();
