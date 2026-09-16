@@ -14,6 +14,7 @@ import "./mobile-game-fix.js";
 import "./mobile-game-repair.js";
 import "./lobby-mode-control.js";
 import "./visual-motion.js";
+import "./gold-card-fix.js";
 import "./settings-cleanup.js";
 import "./leader-team-controls.js";
 import "./lobby-format-guard.js";
@@ -24,7 +25,7 @@ import { initUI, showScreen, showLobby, showGame, showLoading, showError, update
 import { getCurrentUser, createPlayerProfile, getPlayerProfile } from "./player.js";
 import { getSupabase, databaseUpdate } from "./supabase.js";
 
-const APP = { version: "2.0.4", user: null, profile: null, roomId: null, roomCode: null, gameState: null, realtimeChannel: null, initialized: false };
+const APP = { version: "2.0.5", user: null, profile: null, roomId: null, roomCode: null, gameState: null, realtimeChannel: null, initialized: false };
 const safe = (fn) => { try { return fn(); } catch (error) { console.error(error); return null; } };
 const VALID_MODES = new Set(["classic", "expanded", "chaos", "duel"]);
 
