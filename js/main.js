@@ -15,6 +15,7 @@ import "./mobile-game-repair.js";
 import "./lobby-mode-control.js";
 import "./visual-motion.js";
 import "./gold-card-fix.js";
+import "./bugfixes-v3.js";
 import "./settings-cleanup.js";
 import "./leader-team-controls.js";
 import "./lobby-format-guard.js";
@@ -25,7 +26,7 @@ import { initUI, showScreen, showLobby, showGame, showLoading, showError, update
 import { getCurrentUser, createPlayerProfile, getPlayerProfile } from "./player.js";
 import { getSupabase, databaseUpdate } from "./supabase.js";
 
-const APP = { version: "2.0.5", user: null, profile: null, roomId: null, roomCode: null, gameState: null, realtimeChannel: null, initialized: false };
+const APP = { version: "2.0.6", user: null, profile: null, roomId: null, roomCode: null, gameState: null, realtimeChannel: null, initialized: false };
 const safe = (fn) => { try { return fn(); } catch (error) { console.error(error); return null; } };
 const VALID_MODES = new Set(["classic", "expanded", "chaos", "duel"]);
 
@@ -54,6 +55,7 @@ function bindAppEvents() {
   document.addEventListener("codname:create-room", async (e) => {
     if (!APP.user) return showError("ابتدا وارد حساب شوید.");
     try {
+      // Game mode is intentionally selected inside the lobby. New rooms start in Classic.
       const detail = { ...(e.detail || {}), mode: "classic" };
       localStorage.setItem("codname-mode", "classic");
       showLoading("در حال ساخت اتاق...");
@@ -89,7 +91,7 @@ function bindAppEvents() {
       }[mode];
       const playerFormat = mode === "duel" ? "1v1" : "2v2";
       const settings = { ...defaults, playerFormat, maxPlayers: playerFormat === "1v1" ? 2 : 8, mode };
-      const rows = await databaseUpdate("rooms", { game_mode: mode, max_players: settings.maxPlayers, settings, turn_team: "red" }, { id: APP.roomId });
+      const rows = await databaseUpdate("rooms", { game_mode: mode, max_players: settings.maxPlayers, settings, turn_team: "red", game_state: { ...(cur.settings ? {} : {}), ...(cur.gameState || {}) } }, { id: APP.roomId });
       if (!rows.length) throw new Error("تغییر مود در اتاق ذخیره نشد. دسترسی لیدر را بررسی کن.");
       localStorage.setItem("codname-mode", mode);
       await refreshGameState();
@@ -135,9 +137,11 @@ function bindAppEvents() {
   });
 
   document.addEventListener("codname:halloween-spirit", async (e) => {
-    if (!APP.user || !APP.roomId || !e.detail?.cardId) return;
-    try { await useHalloweenSpirit({ roomId: APP.roomId, userId: APP.user.id, cardId: e.detail.cardId }); await refreshGameState(); }
-    catch (error) { console.error(error); showError(error?.message || "فعال‌سازی روح هالووینی انجام نشد."); }
+    if (!APP.user || !APP.roomId) return;
+    try {
+      await useHalloweenSpirit({ roomId: APP.roomId, userId: APP.user.id, cardId: e.detail?.cardId || null });
+      await refreshGameState();
+    } catch (error) { console.error(error); showError(error?.message || "فعال‌سازی روح هالووینی انجام نشد."); }
   });
 
   document.addEventListener("codname:leave-room", async () => { await leaveRoom(); showScreen("menu"); });
