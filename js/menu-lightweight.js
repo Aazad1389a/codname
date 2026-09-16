@@ -1,6 +1,6 @@
 // CODNAME — lightweight menu layer.
-// Removes heavy decorative data panels from the DOM after the menu is mounted.
-const STYLE_ID = "codname-menu-lightweight-v1";
+// Keeps the main menu focused: rankings, recent matches and menu-level mode selection are removed.
+const STYLE_ID = "codname-menu-lightweight-v2";
 
 function install() {
   if (document.getElementById(STYLE_ID)) return;
@@ -8,23 +8,23 @@ function install() {
   style.id = STYLE_ID;
   style.textContent = `
     #screen-menu .ranking-panel,
-    #screen-menu .recent-panel { display:none!important; }
-    #screen-menu .reference-right { gap:12px!important; }
+    #screen-menu .recent-panel,
+    #screen-menu [data-action='show-modes'],
+    #screen-menu .ranking-panel + *,
+    #screen-menu .recent-panel + * { display:none!important; }
   `;
   document.head.appendChild(style);
 }
 
-function removeHeavySections() {
+function removeMenuExtras() {
   document.querySelectorAll("#screen-menu .ranking-panel,#screen-menu .recent-panel").forEach((el) => el.remove());
-  document.querySelectorAll("#screen-menu [data-action='show-leaderboard']").forEach((el) => {
-    if (el.closest(".sidebar-nav,.lower-grid,.topbar-actions")) el.remove();
-  });
+  document.querySelectorAll("#screen-menu [data-action='show-leaderboard'],#screen-menu [data-action='show-modes']").forEach((el) => el.remove());
 }
 
 function boot() {
   install();
-  removeHeavySections();
-  const observer = new MutationObserver(removeHeavySections);
+  removeMenuExtras();
+  const observer = new MutationObserver(removeMenuExtras);
   observer.observe(document.body, { childList:true, subtree:true });
 }
 
