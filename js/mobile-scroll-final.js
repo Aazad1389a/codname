@@ -1,87 +1,58 @@
-// Final mobile menu scrolling fix.
-// Uses a dedicated scroll container instead of scrolling the fixed app screen itself.
-const STYLE_ID = "codname-mobile-scroll-final-v1";
+// CODNAME — stable mobile scrolling layer.
+// Uses only native scrolling. No touch-drag emulation, so taps/clicks remain reliable.
+const STYLE_ID = "codname-mobile-scroll-final-v2";
 
 const css = `
-@media (max-width:700px){
-  html,body{width:100%;height:100%;overflow:hidden!important;overscroll-behavior:none!important;}
-  .app-shell{width:100%;height:100dvh;overflow:hidden!important;}
-  #screen-menu.is-active{
-    position:fixed!important;inset:0!important;width:100vw!important;height:100dvh!important;
-    overflow:hidden!important;display:block!important;touch-action:none!important;
-  }
-  #screen-menu .side-nav{
-    position:fixed!important;left:0!important;top:0!important;bottom:0!important;
-    width:78px!important;height:100dvh!important;z-index:500!important;
-  }
-  #screen-menu .menu-main{
-    position:absolute!important;left:78px!important;right:0!important;top:0!important;bottom:0!important;
-    width:auto!important;height:100%!important;min-height:0!important;
-    margin:0!important;padding:0!important;
-    overflow-y:auto!important;overflow-x:hidden!important;
-    -webkit-overflow-scrolling:touch!important;
-    overscroll-behavior-y:contain!important;
-    touch-action:pan-y!important;
-    scroll-behavior:auto!important;
-  }
-  #screen-menu .menu-main>.topbar{position:relative!important;z-index:2!important;}
-  #screen-menu .menu-main>.reference-layout{
-    min-height:max-content!important;height:auto!important;width:100%!important;
-    padding-bottom:80px!important;
-  }
-  #screen-menu .reference-layout,
-  #screen-menu .reference-center,
-  #screen-menu .reference-right{overflow:visible!important;height:auto!important;min-height:0!important;}
+@media(max-width:700px){
+  html,body{width:100%;height:100%;overflow:hidden!important;-webkit-text-size-adjust:100%;}
+  .app-shell{width:100%;height:100dvh;min-height:100svh;overflow:hidden!important;}
+  .screen:not(.is-active){display:none!important;visibility:hidden!important;pointer-events:none!important;}
+  .screen.is-active{display:block!important;visibility:visible!important;pointer-events:auto!important;}
+  #screen-loading.is-active{display:grid!important;}
 
-  .cn-halloween-modal{pointer-events:none!important;display:none!important;}
-  .cn-halloween-modal.open{display:flex!important;pointer-events:auto!important;}
-  .cn-halloween-dialog{pointer-events:auto!important;touch-action:pan-y!important;}
+  #screen-menu.is-active,#screen-lobby.is-active,#screen-game.is-active,#screen-result.is-active{
+    position:fixed!important;inset:0!important;width:100vw!important;height:100dvh!important;min-height:100svh!important;
+    overflow-y:auto!important;overflow-x:hidden!important;-webkit-overflow-scrolling:touch!important;
+    overscroll-behavior-y:contain!important;touch-action:pan-y!important;
+  }
+
+  #screen-menu .menu-bg,#screen-menu .cn-menu-particles,#screen-menu .cn-hud-grid{pointer-events:none!important;}
+  #screen-menu [data-action="start-game"]{display:none!important;}
+  #screen-lobby [data-action="start-game"]{display:block!important;}
+
+  #screen-menu .side-nav{position:fixed!important;left:0!important;right:auto!important;top:0!important;bottom:0!important;width:78px!important;height:100dvh!important;z-index:500!important;box-sizing:border-box!important;padding:10px 7px!important;}
+  #screen-menu .side-nav nav{width:100%!important;display:flex!important;flex-direction:column!important;align-items:center!important;gap:5px!important;}
+  #screen-menu .side-bottom{width:100%!important;display:flex!important;flex-direction:column!important;align-items:center!important;gap:5px!important;}
+  #screen-menu .side-item{width:100%!important;min-height:51px!important;height:51px!important;padding:4px 2px!important;border-radius:11px!important;}
+  #screen-menu .side-item span{font-size:15px!important;line-height:1!important;}
+  #screen-menu .side-item b{font-size:6.5px!important;line-height:1.1!important;white-space:nowrap!important;}
+
+  #screen-menu .menu-main{position:relative!important;margin-left:78px!important;width:calc(100% - 78px)!important;min-height:calc(100dvh + 1px)!important;height:auto!important;overflow:visible!important;touch-action:pan-y!important;}
+  #screen-menu .menu-main>.topbar{position:relative!important;height:58px!important;min-height:58px!important;padding:0 10px!important;z-index:5!important;}
+  #screen-menu .menu-main>.reference-layout{width:100%!important;height:auto!important;min-height:0!important;padding:0 10px 90px!important;box-sizing:border-box!important;}
+  #screen-menu .reference-layout,#screen-menu .reference-center,#screen-menu .reference-right{display:block!important;width:100%!important;height:auto!important;min-width:0!important;min-height:0!important;overflow:visible!important;}
+  #screen-menu .reference-center{padding-bottom:30px!important;}
+  #screen-menu .reference-right{padding-bottom:40px!important;}
+  #screen-menu .hero-actions{display:flex!important;flex-direction:column!important;gap:8px!important;}
+  #screen-menu .hero-actions .xl{width:100%!important;min-height:46px!important;}
+
+  #screen-lobby .lobby-layout,#screen-game .game-layout{min-height:max-content!important;height:auto!important;padding-bottom:40px!important;}
+  #screen-lobby .lobby-visual{pointer-events:auto!important;}
+  #screen-lobby [data-action="start-game"],#screen-menu button,#screen-lobby button,#screen-game button,#screen-result button{touch-action:manipulation!important;pointer-events:auto!important;}
+  #screen-game .game-layout{overflow:visible!important;}
+  #screen-game .board-wrap{min-height:0!important;}
+
+  /* Keep our decorative cinematic layer out of the touch hit-test. */
+  .cn-motion-trailer,.cn-motion-game{pointer-events:none!important;}
+  .cnw{touch-action:pan-y!important;}
 }
 `;
 
 function install(){
   if(document.getElementById(STYLE_ID))return;
-  const style=document.createElement("style");
-  style.id=STYLE_ID;
-  style.textContent=css;
-  document.head.appendChild(style);
+  const style=document.createElement("style");style.id=STYLE_ID;style.textContent=css;document.head.appendChild(style);
 }
 
-function enableTouchFallback(){
-  const scroller=document.querySelector("#screen-menu .menu-main");
-  if(!scroller || scroller.dataset.touchFallback === "1") return;
-  scroller.dataset.touchFallback="1";
-
-  let startY=0;
-  let startScroll=0;
-  let dragging=false;
-
-  scroller.addEventListener("touchstart",(e)=>{
-    if(e.touches.length!==1) return;
-    const target=e.target;
-    if(target.closest("button,a,input,select,textarea,[role=button],dialog,.cn-halloween-modal")) return;
-    startY=e.touches[0].clientY;
-    startScroll=scroller.scrollTop;
-    dragging=true;
-  },{passive:true});
-
-  scroller.addEventListener("touchmove",(e)=>{
-    if(!dragging || e.touches.length!==1) return;
-    const y=e.touches[0].clientY;
-    const delta=startY-y;
-    if(Math.abs(delta)<1) return;
-    scroller.scrollTop=startScroll+delta;
-  },{passive:true});
-
-  scroller.addEventListener("touchend",()=>{dragging=false;},{passive:true});
-  scroller.addEventListener("touchcancel",()=>{dragging=false;},{passive:true});
-}
-
-function boot(){
-  install();
-  enableTouchFallback();
-  const observer=new MutationObserver(()=>enableTouchFallback());
-  observer.observe(document.body,{childList:true,subtree:true});
-}
-
+function boot(){install();}
 document.addEventListener("DOMContentLoaded",boot,{once:true});
+window.addEventListener("pageshow",install);
