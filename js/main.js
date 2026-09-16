@@ -4,6 +4,7 @@ import "./ui-fixes.js";
 import "./install-entry.js";
 import "./github-auth-ui.js";
 import "./menu-visuals.js";
+import "./menu-lightweight.js";
 import "./workspace-v2.js";
 import "./mobile-clean.js";
 import "./mobile-scroll-final.js";
@@ -11,6 +12,8 @@ import "./desktop-scroll-final.js";
 import "./team-roles.js";
 import "./mobile-game-fix.js";
 import "./mobile-game-repair.js";
+import "./lobby-mode-control.js";
+import "./visual-motion.js";
 import "./settings-cleanup.js";
 import "./leader-team-controls.js";
 import "./lobby-format-guard.js";
@@ -21,7 +24,7 @@ import { initUI, showScreen, showLobby, showGame, showLoading, showError, update
 import { getCurrentUser, createPlayerProfile, getPlayerProfile } from "./player.js";
 import { getSupabase, databaseUpdate } from "./supabase.js";
 
-const APP = { version: "2.0.3", user: null, profile: null, roomId: null, roomCode: null, gameState: null, realtimeChannel: null, initialized: false };
+const APP = { version: "2.0.4", user: null, profile: null, roomId: null, roomCode: null, gameState: null, realtimeChannel: null, initialized: false };
 const safe = (fn) => { try { return fn(); } catch (error) { console.error(error); return null; } };
 const VALID_MODES = new Set(["classic", "expanded", "chaos", "duel"]);
 
@@ -50,9 +53,8 @@ function bindAppEvents() {
   document.addEventListener("codname:create-room", async (e) => {
     if (!APP.user) return showError("ابتدا وارد حساب شوید.");
     try {
-      const detail = { ...(e.detail || {}) };
-      const preferredMode = localStorage.getItem("codname-mode");
-      if (VALID_MODES.has(preferredMode)) detail.mode = preferredMode;
+      const detail = { ...(e.detail || {}), mode: "classic" };
+      localStorage.setItem("codname-mode", "classic");
       showLoading("در حال ساخت اتاق...");
       const r = await createGame({ userId: APP.user.id, ...detail });
       APP.roomId = r.roomId; APP.roomCode = r.roomCode;
@@ -71,11 +73,7 @@ function bindAppEvents() {
   document.addEventListener("codname:change-room-mode", async (e) => {
     const mode = String(e.detail?.mode || "");
     if (!VALID_MODES.has(mode)) return showError("مود انتخاب‌شده معتبر نیست.");
-    localStorage.setItem("codname-mode", mode);
-    if (!APP.user || !APP.roomId) {
-      showError(`مود ${mode} برای ساخت اتاق بعدی ذخیره شد.`);
-      return;
-    }
+    if (!APP.user || !APP.roomId) return showError("ابتدا وارد یک اتاق شوید؛ مود فقط داخل اتاق تغییر می‌کند.");
     try {
       const cur = await getGameState(APP.roomId);
       if (!cur) throw new Error("اتاق پیدا نشد.");
@@ -89,14 +87,10 @@ function bindAppEvents() {
         duel: { boardSize: 16, targetScore: 5, bonus: false, darkCards: 1 }
       }[mode];
       const playerFormat = mode === "duel" ? "1v1" : "2v2";
-      const settings = { ...defaults, playerFormat, maxPlayers: playerFormat === "1v1" ? 2 : 8 };
-      const rows = await databaseUpdate("rooms", {
-        game_mode: mode,
-        max_players: settings.maxPlayers,
-        settings,
-        turn_team: "red"
-      }, { id: APP.roomId });
+      const settings = { ...defaults, playerFormat, maxPlayers: playerFormat === "1v1" ? 2 : 8, mode };
+      const rows = await databaseUpdate("rooms", { game_mode: mode, max_players: settings.maxPlayers, settings, turn_team: "red" }, { id: APP.roomId });
       if (!rows.length) throw new Error("تغییر مود در اتاق ذخیره نشد. دسترسی لیدر را بررسی کن.");
+      localStorage.setItem("codname-mode", mode);
       await refreshGameState();
       showError(`مود ${mode} با موفقیت روی اتاق اعمال شد.`);
     } catch (error) { console.error(error); showError(error?.message || "تغییر مود انجام نشد."); }
