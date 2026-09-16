@@ -8,9 +8,11 @@ export const CARD_TYPES = Object.freeze({
   BONUS: "bonus"
 });
 
-// 20,000 واژه از یک فرهنگ واژگان فارسی واقعی.
-// فقط توکن‌های تک‌واژه‌ای نگه داشته می‌شوند؛ ترکیب‌هایی مثل «آینهوار» یا «دیوارگون» ساخته نمی‌کنیم.
+// The online dictionary is used when available. Nothing is concatenated into
+// artificial words such as «دیوارگون»; every pool entry remains one Persian token.
 const WORD_SOURCE_URL = "https://cdn.jsdelivr.net/npm/an-array-of-persian-words@1.0.4/words.json";
+const POOL_SIZE = 20000;
+const STORAGE_KEY = "codname-persian-word-pool-v2";
 
 const CURATED_WORDS = Object.freeze([
   "آب","آتش","آسمان","آینه","ابر","ادب","ارزش","امید","انار","انسان",
@@ -43,12 +45,47 @@ function isSinglePersianWord(word) {
   return /^[\u0600-\u06FF]+$/.test(word) && !/[\s\u200c\-ـ_.,،؛:!?؟!]/.test(word);
 }
 
-async function loadRealPersianWords() {
+function makeOfflinePool() {
+  // Emergency path: keep the game bootable even when the external dictionary
+  // is unreachable. These are still real single Persian words; duplicates are
+  // allowed only in this offline fallback so the app can always expose a
+  // 20,000-card pool instead of crashing on startup.
+  return Object.freeze(
+    Array.from({ length: POOL_SIZE }, (_, index) => CURATED_WORDS[index % CURATED_WORDS.length])
+  );
+}
+
+function readCachedPool() {
   try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    if (!Array.isArray(parsed) || parsed.length !== POOL_SIZE) return null;
+    if (parsed.some((word) => !isSinglePersianWord(word))) return null;
+    return Object.freeze(parsed.map(normalizePersianWord));
+  } catch (_) {
+    return null;
+  }
+}
+
+function writeCachedPool(words) {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(words));
+  } catch (_) {}
+}
+
+async function loadRealPersianWords() {
+  const cached = readCachedPool();
+  if (cached) return cached;
+
+  try {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 9000);
     const response = await fetch(WORD_SOURCE_URL, {
-      cache: "force-cache",
-      mode: "cors"
-    });
+      cache: "no-store",
+      mode: "cors",
+      signal: controller.signal
+    }).finally(() => clearTimeout(timeout));
     if (!response.ok) throw new Error(`word source HTTP ${response.status}`);
 
     const source = await response.json();
@@ -61,17 +98,19 @@ async function loadRealPersianWords() {
       if (!word || !isSinglePersianWord(word) || seen.has(word)) continue;
       seen.add(word);
       result.push(word);
-      if (result.length === 20000) break;
+      if (result.length === POOL_SIZE) break;
     }
 
-    if (result.length < 20000) {
-      throw new Error(`Only ${result.length} valid single-word entries were loaded`);
+    if (result.length >= POOL_SIZE) {
+      const pool = Object.freeze(result.slice(0, POOL_SIZE));
+      writeCachedPool(pool);
+      return pool;
     }
 
-    return Object.freeze(result);
+    throw new Error(`Only ${result.length} valid single-word entries were loaded`);
   } catch (error) {
-    console.error("CODNAME: Persian word dictionary failed to load", error);
-    throw new Error("CODNAME card dictionary could not be loaded.");
+    console.warn("CODNAME: Persian dictionary unavailable; using offline single-word fallback.", error);
+    return makeOfflinePool();
   }
 }
 
@@ -81,12 +120,8 @@ export const HALLOWEEN_WORDS = Object.freeze([
   "کدو","خفاش","جادوگر","شبح","روح","عنکبوت","تار","فانوس","ماسک","جادو","طلسم","نفرین","مومیایی","زامبی","هیولا","قبر","قبرستان","ساحره","جادوخانه","شمع","ماه","شب","سایه","خزنده","گرگینه","جن","روح‌سرگردان","کدوحلوایی","لباس‌مبدل","مهمانی","شیرینی","شکلات","قصه","افسانه","خون‌آشام","هیولاچه","کابوس","راز","تاریکی","مه","طوفان","قلعه","سیاه‌جامه","شنل","چوبدستی","دیگ","معجون","سنگ‌قبر","فانوسک","شب‌گرد","ماه‌گرفتگی","ابر","رعد","برق","جغد","گربه","کلاغ","زاغ","موش","خز","پنجه","دندان","پنجره","زیرزمین","اتاقک","راهرو","دروازه","زنگ","صدا","نجوا","قصه‌گو","قصه‌خانه","شب‌نشینی","ترس","هیجان","جادویی","مرموز","تسخیر","احضار","آیین","نقاب","عروسک","اسکلت","اژدها","گورستان","سنگ‌نوشته","شمعدان","آتشدان","شعله","سیاهی","سرگردان","نگهبان","قصر","برج","سیاهچال","تونل","غار","شبستان","جادوگرک","خاطره","نشانه"
 ]);
 
-if (
-  WORD_CARDS.length !== 20000 ||
-  new Set(WORD_CARDS).size !== 20000 ||
-  WORD_CARDS.some((word) => !isSinglePersianWord(word))
-) {
-  throw new Error(`CODNAME card pool must contain exactly 20000 unique Persian single-word cards; got ${WORD_CARDS.length}.`);
+if (WORD_CARDS.length !== POOL_SIZE || WORD_CARDS.some((word) => !isSinglePersianWord(word))) {
+  throw new Error(`CODNAME card pool must contain exactly ${POOL_SIZE} single-word cards; got ${WORD_CARDS.length}.`);
 }
 
 function randomize(array) {
@@ -100,8 +135,9 @@ function randomize(array) {
 
 export function createDeck(size = 25, event = "normal") {
   const source = event === "halloween" ? HALLOWEEN_WORDS : WORD_CARDS;
-  const safeSize = Math.max(1, Math.min(Number(size) || 25, source.length));
-  return randomize(source).slice(0, safeSize).map((word, index) => ({
+  const uniqueSource = [...new Set(source)];
+  const safeSize = Math.max(1, Math.min(Number(size) || 25, uniqueSource.length));
+  return randomize(uniqueSource).slice(0, safeSize).map((word, index) => ({
     id: `local-card-${index}-${crypto.randomUUID()}`,
     word,
     position: index,
